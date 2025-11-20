@@ -4,7 +4,7 @@
       ref="contentRef"
       class="markdown-content"
       v-html="renderedContent"
-    ></div>
+    />
   </div>
 </template>
 
@@ -68,7 +68,7 @@ watch(() => props.text, (newText, oldText) => {
 
 .markdown-content {
   display: inline;
-  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* 代码块样式 */
@@ -88,7 +88,7 @@ watch(() => props.text, (newText, oldText) => {
 }
 
 .markdown-content :deep(code) {
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+  font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, Courier, monospace;
 }
 
 /* 行内代码样式 */
@@ -106,7 +106,7 @@ watch(() => props.text, (newText, oldText) => {
 
 /* 段落样式 */
 .markdown-content :deep(p) {
-  margin: 0 0 16px 0;
+  margin: 0 0 16px;
   line-height: 1.6;
 }
 
@@ -121,7 +121,7 @@ watch(() => props.text, (newText, oldText) => {
 .markdown-content :deep(h4), 
 .markdown-content :deep(h5), 
 .markdown-content :deep(h6) {
-  margin: 24px 0 16px 0;
+  margin: 24px 0 16px;
   font-weight: 600;
   line-height: 1.25;
   color: #1f2328;
@@ -146,7 +146,7 @@ watch(() => props.text, (newText, oldText) => {
 /* 列表样式 */
 .markdown-content :deep(ul), 
 .markdown-content :deep(ol) {
-  margin: 0 0 16px 0;
+  margin: 0 0 16px;
   padding-left: 2em;
 }
 
@@ -160,7 +160,7 @@ watch(() => props.text, (newText, oldText) => {
 
 /* 引用样式 */
 .markdown-content :deep(blockquote) {
-  margin: 0 0 16px 0;
+  margin: 0 0 16px;
   padding: 0 1em;
   color: #656d76;
   border-left: 0.25em solid #d0d7de;

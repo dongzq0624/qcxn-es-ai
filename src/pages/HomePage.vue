@@ -8,23 +8,23 @@
       </div>
       <div class="flex items-center gap-2">
         <button 
-          @click="clearCurrentChat" 
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" 
           title="清除当前聊天"
+          @click="clearCurrentChat"
         >
           <Trash2 class="w-4 h-4 text-gray-600 dark:text-gray-400" />
         </button>
         <button 
-          @click="exportToPNG" 
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" 
           title="导出为PNG"
+          @click="exportToPNG"
         >
           <Download class="w-4 h-4 text-gray-600 dark:text-gray-400" />
         </button>
         <button 
-          @click="toggleFullscreen" 
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" 
           :title="isFullscreen ? '退出全屏' : '全屏'"
+          @click="toggleFullscreen"
         >
           <component :is="isFullscreen ? Minimize : Maximize" class="w-4 h-4 text-gray-600 dark:text-gray-400" />
         </button>
@@ -62,16 +62,16 @@
             <!-- 操作按钮在消息左侧 -->
             <div class="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
               <button 
-                @click="copyMessage(message)"
                 class="p-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 title="复制"
+                @click="copyMessage(message)"
               >
                 <Copy class="w-3 h-3 text-gray-600 dark:text-gray-400" />
               </button>
               <button 
-                @click="deleteMessage(message.id)"
                 class="p-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 title="删除"
+                @click="deleteMessage(message.id)"
               >
                 <Trash2 class="w-3 h-3 text-red-500" />
               </button>
@@ -110,23 +110,23 @@
             <!-- 操作按钮在模型名称右侧 -->
             <div class="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
               <button 
-                @click="retryMessage(message)"
                 class="p-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 title="重试"
+                @click="retryMessage(message)"
               >
                 <RotateCcw class="w-3 h-3 text-gray-600 dark:text-gray-400" />
               </button>
               <button 
-                @click="copyMessage(message)"
                 class="p-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 title="复制"
+                @click="copyMessage(message)"
               >
                 <Copy class="w-3 h-3 text-gray-600 dark:text-gray-400" />
               </button>
               <button 
-                @click="deleteMessage(message.id)"
                 class="p-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 title="删除"
+                @click="deleteMessage(message.id)"
               >
                 <Trash2 class="w-3 h-3 text-red-500" />
               </button>
@@ -144,14 +144,14 @@
               
               <!-- 加载状态指示器 -->
               <div v-if="typingMessages.has(message.id) && !message.content" class="flex items-center gap-2">
-                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms" />
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms" />
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms" />
                 <span class="text-sm text-gray-500 ml-2">思考中...</span>
               </div>
               
               <!-- 打字效果光标 -->
-              <span v-if="typingMessages.has(message.id) && message.content" class="inline-block w-1 h-4 bg-current ml-1 animate-pulse"></span>
+              <span v-if="typingMessages.has(message.id) && message.content" class="inline-block w-1 h-4 bg-current ml-1 animate-pulse" />
             </div>
             <div v-else-if="message.type === 'code'" class="relative">
               <div class="absolute top-2 right-2 z-10">
@@ -173,14 +173,14 @@
       <div class="flex items-end gap-2">
         <textarea
           v-model="inputMessage"
-          @keydown="handleKeyDown"
           :placeholder="'Enter 发送，Shift + Enter 换行，/ 查看命令，粘贴图片'"
           class="flex-1 resize-none border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
           rows="1"
-        ></textarea>
+          @keydown="handleKeyDown"
+        />
         <button 
-          @click="sendMessage"
           class="px-6 py-3 bg-teal-500 text-white rounded-xl hover:bg-teal-600 transition-colors font-medium shadow-lg"
+          @click="sendMessage"
         >
           发送
         </button>
@@ -687,6 +687,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
   background: rgba(31, 41, 55, 0.95) !important;
   border-top: 1px solid rgba(55, 65, 81, 0.5) !important;
 }
+
 /* 深色模式下的全屏样式 */
 :global(.dark.chat-fullscreen-mode) .min-h-screen.flex.items-center.justify-center.p-4 {
   background: #111827 !important;

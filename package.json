@@ -8,8 +8,13 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "check": "vue-tsc -b",
-    "lint": "eslint . --ext .ts,.vue",
-    "lint:fix": "eslint . --ext .ts,.vue --fix"
+    "lint": "eslint . --ext .ts,.vue --max-warnings=0",
+    "lint:fix": "eslint . --ext .ts,.vue --fix",
+    "stylelint": "stylelint \"src/**/*.{css,scss,vue}\"",
+    "stylelint:fix": "stylelint \"src/**/*.{css,scss,vue}\" --fix",
+    "prepare": "husky",
+    "commitlint": "commitlint --from=HEAD~1 --to=HEAD",
+    "precommit": "lint-staged"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
@@ -27,6 +32,8 @@
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@types/node": "^22.15.30",
     "@typescript-eslint/eslint-plugin": "^7.0.1",
     "@typescript-eslint/parser": "^7.0.1",
@@ -36,7 +43,13 @@
     "autoprefixer": "^10.4.17",
     "eslint": "^8.56.0",
     "eslint-plugin-vue": "^9.20.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
     "postcss": "^8.4.35",
+    "postcss-html": "^1.8.0",
+    "stylelint": "^16.25.0",
+    "stylelint-config-recommended-vue": "^1.6.1",
+    "stylelint-config-standard": "^36.0.1",
     "tailwindcss": "^3.4.1",
     "typescript": "~5.3.3",
     "unplugin-vue-dev-locator": "^1.0.0",
