@@ -4,8 +4,7 @@ import { defineStore } from 'pinia'
 export type SendMode = 'enter' | 'ctrlEnter'
 export type Theme = 'light' | 'dark' | 'auto'
 export type Language = 'zh' | 'en' | 'ko'
-export type TTSEngine = 'OpenAI-TTS' | 'Azure-TTS'
-export type TTSVoice = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer'
+// 已移除 TTS 功能
 
 export interface SettingsState {
   // 基础设置
@@ -16,9 +15,6 @@ export interface SettingsState {
   fontSize: number
   chatFont: string
   autoGenerateTitle: boolean
-  previewBubble: boolean
-  enableArtifacts: boolean
-  enableCodeFold: boolean
 
   // 界面设置
   maskStartup: boolean
@@ -40,13 +36,6 @@ export interface SettingsState {
   historySummary: boolean
   summaryModel: string
   realtimeChat: boolean
-
-  // TTS设置
-  enableTTS: boolean
-  ttsEngine: TTSEngine
-  ttsModel: string
-  ttsVoice: TTSVoice
-  ttsSpeed: number
 }
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -59,9 +48,6 @@ export const useSettingsStore = defineStore('settings', () => {
     fontSize: 14,
     chatFont: 'Arial',
     autoGenerateTitle: true,
-    previewBubble: true,
-    enableArtifacts: false,
-    enableCodeFold: true,
 
     // 界面设置
     maskStartup: true,
@@ -83,13 +69,6 @@ export const useSettingsStore = defineStore('settings', () => {
     historySummary: false,
     summaryModel: 'model1',
     realtimeChat: false,
-
-    // TTS设置
-    enableTTS: false,
-    ttsEngine: 'OpenAI-TTS',
-    ttsModel: 'tts-1',
-    ttsVoice: 'alloy',
-    ttsSpeed: 1.0,
   })
 
   // 加载保存的设置
@@ -120,9 +99,6 @@ export const useSettingsStore = defineStore('settings', () => {
       fontSize: 14,
       chatFont: 'Arial',
       autoGenerateTitle: true,
-      previewBubble: true,
-      enableArtifacts: false,
-      enableCodeFold: true,
       maskStartup: true,
       hideBuiltinMasks: false,
       disablePromptAutoComplete: false,
@@ -140,11 +116,6 @@ export const useSettingsStore = defineStore('settings', () => {
       historySummary: false,
       summaryModel: 'model1',
       realtimeChat: false,
-      enableTTS: false,
-      ttsEngine: 'OpenAI-TTS',
-      ttsModel: 'tts-1',
-      ttsVoice: 'alloy',
-      ttsSpeed: 1.0,
     }
     Object.assign(settings.value, defaultSettings)
     saveSettings()

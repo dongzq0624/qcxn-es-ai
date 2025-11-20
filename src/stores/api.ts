@@ -34,6 +34,8 @@ export interface ChatResponse {
 export const useApiStore = defineStore('api', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const currentController = ref<AbortController | null>(null)
+  const stopped = ref(false)
 
   // API 配置
   const DEEPSEEK_API_KEY = 'sk-f3e2a86d8eb34f519eabe9fa84435024'
@@ -209,6 +211,9 @@ Current time: ${new Date().toString()}
   ): Promise<void> => {
     isLoading.value = true
     error.value = null
+    stopped.value = false
+    const controller = new AbortController()
+    currentController.value = controller
 
     try {
       // 构建请求消息
@@ -300,6 +305,7 @@ Current time: ${new Date().toString()}
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify(requestBody),
+        signal: controller.signal,
       })
 
       console.log('Response status:', response.status)
@@ -349,11 +355,27 @@ Current time: ${new Date().toString()}
         }
       }
     } catch (err) {
+      if (stopped.value) {
+        error.value = null
+        return
+      }
       error.value = err instanceof Error ? err.message : 'Unknown error occurred'
       console.error('API Error:', err)
       throw err
     } finally {
       isLoading.value = false
+      currentController.value = null
+    }
+  }
+
+  const stopStreaming = () => {
+    stopped.value = true
+    if (currentController.value) {
+      try {
+        currentController.value.abort()
+      } catch (e) {
+        error.value = null
+      }
     }
   }
 
@@ -362,5 +384,6 @@ Current time: ${new Date().toString()}
     error,
     sendMessage,
     sendStreamingMessage,
+    stopStreaming,
   }
 })

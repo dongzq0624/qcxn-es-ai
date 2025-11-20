@@ -101,7 +101,6 @@
               <el-option value="zh" label="简体中文" />
               <el-option value="en" label="English" />
               <el-option value="ko" label="한국어" />
-              <el-option value="ko" label="한국어" />
             </el-select>
           </div>
 
@@ -159,51 +158,6 @@
               </p>
             </div>
             <el-switch v-model="settingsStore.settings.autoGenerateTitle" />
-          </div>
-
-          <!-- 预览气泡 -->
-          <div
-            class="flex items-center justify-between border-b border-gray-100 p-4 dark:border-gray-700"
-          >
-            <div>
-              <h4 class="font-medium text-gray-800 dark:text-gray-200">
-                {{ $t('settings.previewBubble') }}
-              </h4>
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                {{ $t('settings.previewBubbleDesc') }}
-              </p>
-            </div>
-            <el-switch v-model="settingsStore.settings.previewBubble" />
-          </div>
-
-          <!-- 启用Artifacts -->
-          <div
-            class="flex items-center justify-between border-b border-gray-100 p-4 dark:border-gray-700"
-          >
-            <div>
-              <h4 class="font-medium text-gray-800 dark:text-gray-200">
-                {{ $t('settings.enableArtifacts') }}
-              </h4>
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                {{ $t('settings.enableArtifactsDesc') }}
-              </p>
-            </div>
-            <el-switch v-model="settingsStore.settings.enableArtifacts" />
-          </div>
-
-          <!-- 启用代码折叠 -->
-          <div
-            class="flex items-center justify-between border-b border-gray-100 p-4 dark:border-gray-700"
-          >
-            <div>
-              <h4 class="font-medium text-gray-800 dark:text-gray-200">
-                {{ $t('settings.enableCodeFold') }}
-              </h4>
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                {{ $t('settings.enableCodeFoldDesc') }}
-              </p>
-            </div>
-            <el-switch v-model="settingsStore.settings.enableCodeFold" />
           </div>
 
           <!-- 模型设置 -->

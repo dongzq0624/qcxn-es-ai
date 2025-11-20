@@ -1,30 +1,26 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomePage from '@/pages/HomePage.vue'
-import SettingsPage from '@/pages/SettingsPage.vue'
-import MasksPage from '@/pages/MasksPage.vue'
-import MasksManagementPage from '@/pages/MasksManagementPage.vue'
 
 // 定义路由配置
 const routes = [
   {
     path: '/',
     name: 'home',
-    component: HomePage,
+    component: () => import('@/views/HomePage.vue'),
   },
   {
     path: '/settings',
     name: 'settings',
-    component: SettingsPage,
+    component: () => import('@/views/SettingsPage.vue'),
   },
   {
     path: '/masks',
     name: 'masks',
-    component: MasksPage,
+    component: () => import('@/views/MasksPage.vue'),
   },
   {
     path: '/masks-management',
     name: 'masks-management',
-    component: MasksManagementPage,
+    component: () => import('@/views/MasksManagementPage.vue'),
   },
   {
     path: '/about',

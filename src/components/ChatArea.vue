@@ -120,68 +120,21 @@
                 fontFamily: settingsStore.settings.chatFont,
               }"
             >
-              <!-- JSON内容显示 -->
-              <div v-if="isJsonString(message.content)" class="whitespace-pre-wrap">
-                <pre class="whitespace-pre-wrap">{{ formatMessageContent(message.content) }}</pre>
-              </div>
-
-              <!-- 包含代码块的内容 - DeepSeek风格 -->
-              <div v-else-if="hasCodeBlock(message.content)" class="whitespace-pre-wrap">
-                <div
-                  v-for="(block, index) in extractCodeBlocks(message.content)"
-                  :key="index"
-                  class="mb-6"
-                >
-                  <!-- 代码块容器 -->
-                  <div class="group relative">
-                    <!-- 代码块头部 -->
-                    <div
-                      class="absolute left-0 right-0 top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-4 py-3 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                    >
-                      <div class="flex items-center gap-3">
-                        <div
-                          class="flex h-6 w-6 items-center justify-center rounded-md bg-blue-500"
-                        >
-                          <Code class="h-3 w-3 text-white" />
-                        </div>
-                        <span class="text-sm font-semibold">
-                          {{ block.language.toUpperCase() }}
-                        </span>
-                        <span class="rounded bg-gray-700 px-2 py-1 text-xs text-gray-400">
-                          代码
-                        </span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <button
-                          @click="copyCode(block.code, block.language)"
-                          class="group rounded-lg p-2 transition-colors hover:bg-gray-700"
-                          title="复制代码"
-                        >
-                          <Copy class="h-4 w-4 group-hover:text-blue-400" />
-                        </button>
-                        <button
-                          @click="downloadCode(block.code, block.language)"
-                          class="group rounded-lg p-2 transition-colors hover:bg-gray-700"
-                          title="下载代码"
-                        >
-                          <Download class="h-4 w-4 group-hover:text-green-400" />
-                        </button>
-                      </div>
-                    </div>
-                    <!-- 代码内容 -->
-                    <pre
-                      class="overflow-x-auto rounded-b-xl border border-gray-200 bg-gray-50 p-6 pt-16 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                    ><code :class="'language-' + block.language">{{ block.code }}</code></pre>
-                  </div>
-                </div>
-                <!-- 剩余文本内容 -->
-                <div class="mt-4 leading-relaxed text-gray-700 dark:text-gray-300">
-                  {{ message.content.replace(/```\w*\n[\s\S]*?```/g, '').trim() }}
-                </div>
-              </div>
-
-              <!-- 普通文本内容 -->
-              <div v-else class="whitespace-pre-wrap">{{ message.content }}</div>
+              <!-- 统一使用Markdown渲染，包括JSON内容 -->
+              <div
+                v-if="message.sender === 'user'"
+                class="prose prose-sm markdown-content max-w-none overflow-x-auto leading-relaxed"
+                :class="'prose-invert text-white'"
+                v-html="renderMarkdownHtml(formatMessageContent(message.content))"
+              ></div>
+              <!-- AI消息使用Typewriter组件实现流式渲染 -->
+              <Typewriter
+                v-else
+                :text="formatMessageContent(message.content)"
+                :streaming="typingMessages.has(message.id)"
+                @complete="handleMessageComplete(message)"
+              />
+              >
 
               <!-- 消息操作按钮 -->
               <div
@@ -238,16 +191,7 @@
                     JSON
                   </button>
                 </div>
-                <!-- 代码折叠按钮 -->
-                <button
-                  v-if="settingsStore.settings.enableCodeFold"
-                  @click="toggleCodeFold(message.id)"
-                  class="rounded bg-gray-700 p-1 text-gray-300 transition-colors hover:bg-gray-600"
-                  :title="isCodeFolded(message.id) ? '展开' : '折叠'"
-                >
-                  <ChevronDown v-if="!isCodeFolded(message.id)" class="h-3 w-3" />
-                  <ChevronRight v-else class="h-3 w-3" />
-                </button>
+
                 <!-- 消息操作按钮 -->
                 <div class="flex gap-1">
                   <button
@@ -325,7 +269,7 @@
                   fontSize: settingsStore.settings.fontSize + 'px',
                   fontFamily: settingsStore.settings.chatFont,
                 }"
-                v-html="formatMessageContent(message.content)"
+                v-html="renderMarkdownHtml(formatMessageContent(message.content))"
               ></div>
             </div>
 
@@ -445,9 +389,10 @@
   import { useSettingsStore } from '@/stores/settings'
   import { useApiStore } from '@/stores/api'
   import { ElMessage } from 'element-plus'
-  import { formatMessageContent, isJsonString } from '@/utils/markdown'
+  import { formatMessageContent, isJsonString, renderMarkdownHtml } from '@/utils/markdown'
   import type { Message } from '@/stores/chat'
   import hljs from 'highlight.js'
+  import Typewriter from '@/components/Typewriter.vue'
 
   const chatStore = useChatStore()
   const settingsStore = useSettingsStore()
@@ -462,6 +407,104 @@
 
   // 打字消息状态
   const typingMessages = ref<Set<string>>(new Set())
+
+  // 存储正在流式处理的消息内容
+  const streamingMessageContents = ref<Map<string, string>>(new Map())
+
+  // 处理消息流式完成事件
+  const handleMessageComplete = (message: Message) => {
+    // 从打字状态中移除
+    typingMessages.value.delete(message.id)
+
+    // 清除存储的流式内容
+    streamingMessageContents.value.delete(message.id)
+
+    // 重新高亮所有代码块
+    nextTick(() => {
+      hljs.highlightAll()
+    })
+  }
+
+  // DeepSeek风格文本格式化函数
+  const formatForDeepSeek = (text: string): string => {
+    // 1. 添加适当的段落分隔
+    let formatted = text.replace(/\n\n/g, '\n\n')
+
+    // 2. 增强标题格式（DeepSeek通常使用更突出的标题样式）
+    formatted = formatted.replace(/^(#{1,6})\s+(.*)$/gm, (match, hashes, title) => {
+      const level = hashes.length
+      // 添加标题后的分隔线，增强DeepSeek风格
+      if (level <= 3) {
+        return `${hashes} ${title}\n${'-'.repeat(title.length)}`
+      }
+      return match
+    })
+
+    // 3. 增强列表项（添加更明显的缩进）
+    formatted = formatted.replace(/^(\s*)([-*+]|\d+\.)\s+(.*)$/gm, '$1$2  $3')
+
+    // 4. 代码块添加语法说明（如果没有指定）
+    formatted = formatted.replace(/```\n([\s\S]*?)```/g, '```javascript\n$1```')
+
+    return formatted
+  }
+
+  // DeepSeek风格模拟流式回复函数
+  const simulateStreamingResponse = (messageId: string, fullContent: string, delay = 10) => {
+    let index = 0
+    const message = currentConversation.value?.messages.find((m) => m.id === messageId)
+
+    if (!message) return
+
+    // DeepSeek风格：设置为打字状态
+    typingMessages.value.add(messageId)
+
+    // 存储初始内容
+    streamingMessageContents.value.set(messageId, '')
+
+    // DeepSeek风格：分块流式输出（按句子或短语）
+    const streamNextChunk = () => {
+      if (index < fullContent.length) {
+        // DeepSeek风格：优先按标点符号分块
+        let nextIndex = fullContent.indexOf('. ', index)
+        if (nextIndex === -1) nextIndex = fullContent.indexOf('? ', index)
+        if (nextIndex === -1) nextIndex = fullContent.indexOf('! ', index)
+        if (nextIndex === -1) nextIndex = fullContent.indexOf('\n', index)
+        if (nextIndex === -1 || nextIndex > index + 20) nextIndex = index + 15
+
+        nextIndex++ // 包含标点符号
+
+        // 取当前块
+        const chunk = fullContent.substring(index, nextIndex)
+        index = nextIndex
+
+        // 更新存储的内容
+        const currentContent = streamingMessageContents.value.get(messageId) || ''
+        const newContent = currentContent + chunk
+        streamingMessageContents.value.set(messageId, newContent)
+
+        // 更新消息内容
+        message.content = newContent
+
+        // DeepSeek风格：调整延迟使其更自然
+        let nextDelay = delay * chunk.length
+        if (chunk.includes('\n')) {
+          nextDelay += 100 // 换行后停顿更长
+        } else if (chunk.match(/[.!?]$/)) {
+          nextDelay += 50 // 句子结束停顿
+        }
+
+        // 继续流式输出
+        setTimeout(streamNextChunk, Math.min(nextDelay, 500)) // 最大延迟限制
+      } else {
+        // 流式完成
+        handleMessageComplete(message)
+      }
+    }
+
+    // 开始流式输出
+    streamNextChunk()
+  }
 
   // 代码折叠状态
   const foldedCodeBlocks = ref<Set<string>>(new Set())
@@ -507,7 +550,20 @@
     () => currentConversation.value?.messages.length,
     () => {
       scrollToBottom()
-      nextTick(() => hljs.highlightAll())
+      nextTick(() => {
+        hljs.highlightAll()
+        // 确保所有表格有适当的样式
+        document.querySelectorAll('.prose table').forEach((table) => {
+          table.classList.add('border-collapse', 'w-full', 'text-sm')
+          table.querySelectorAll('th, td').forEach((cell) => {
+            cell.classList.add('border', 'px-3', 'py-2')
+          })
+        })
+        // 确保代码块有适当的样式
+        document.querySelectorAll('.prose pre code').forEach((code) => {
+          code.classList.add('p-4', 'rounded', 'overflow-x-auto')
+        })
+      })
     },
     { flush: 'post' }
   )
@@ -835,14 +891,23 @@
           : settingsStore.settings.language === 'ko'
             ? 'ko-KR'
             : 'en-US'
+
+      // DeepSeek风格：格式化AI回复内容
+      const deepSeekFormattedContent = formatForDeepSeek(aiContent)
+
+      // DeepSeek风格：消息对象添加模型标识
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: aiContent,
+        content: '', // 初始内容为空，后续通过流式填充
         type: messageType,
         timestamp: new Date().toLocaleString(aiLocale),
         sender: 'assistant',
+        model: 'deepseek-chat', // DeepSeek风格：添加模型标识
       }
       chatStore.addMessage(chatStore.currentConversationId, aiMessage)
+
+      // DeepSeek风格：模拟更自然的流式回复
+      simulateStreamingResponse(aiMessage.id, deepSeekFormattedContent, 8) // 略快的基础延迟，更符合DeepSeek体验
     }, 800)
   }
 

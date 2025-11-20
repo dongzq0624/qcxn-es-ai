@@ -25,6 +25,14 @@
           <Trash2 class="h-4 w-4 text-gray-600 dark:text-gray-400" />
         </button>
         <button
+          v-if="typingMessages.size > 0 || apiStore.isLoading"
+          class="rounded-lg p-2 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
+          title="停止生成"
+          @click="handleStopStreaming"
+        >
+          <StopCircle class="h-4 w-4 text-red-500" />
+        </button>
+        <button
           class="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
           title="导出为PNG"
           @click="exportToPNG"
@@ -252,6 +260,7 @@
     User,
     Bot,
   } from 'lucide-vue-next'
+  import { StopCircle } from 'lucide-vue-next'
   import { useChatStore } from '@/stores/chat'
   import { useSettingsStore } from '@/stores/settings'
   import { useApiStore } from '@/stores/api'
@@ -271,6 +280,11 @@
   const chatContainerRef = ref<HTMLElement>() // 聊天容器引用
 
   const currentConversation = computed(() => chatStore.currentConversation)
+
+  const handleStopStreaming = () => {
+    apiStore.stopStreaming()
+    typingMessages.value.clear()
+  }
 
   const sendMessage = async () => {
     if (!inputMessage.value.trim()) return

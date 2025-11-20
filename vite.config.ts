@@ -11,6 +11,13 @@ export default defineConfig({
   },
   server: {
     port: 8080, // 设置默认端口为8080
+    open: true, // 自动打开浏览器
+    host: true, // 允许从外部访问
+  },
+  // 自动启动配置
+  preview: {
+    port: 8080,
+    open: true,
   },
   plugins: [
     vue(),

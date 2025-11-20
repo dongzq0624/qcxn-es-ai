@@ -117,33 +117,6 @@
         <el-switch v-model="settingsStore.settings.autoGenerateTitle" />
       </div>
 
-      <!-- 预览气泡 -->
-      <div class="flex items-center justify-between">
-        <div>
-          <h4 class="font-medium text-gray-800">{{ $t('settings.previewBubble') }}</h4>
-          <p class="text-sm text-gray-600">{{ $t('settings.previewBubbleDesc') }}</p>
-        </div>
-        <el-switch v-model="settingsStore.settings.previewBubble" />
-      </div>
-
-      <!-- 启用Artifacts -->
-      <div class="flex items-center justify-between">
-        <div>
-          <h4 class="font-medium text-gray-800">{{ $t('settings.enableArtifacts') }}</h4>
-          <p class="text-sm text-gray-600">{{ $t('settings.enableArtifactsDesc') }}</p>
-        </div>
-        <el-switch v-model="settingsStore.settings.enableArtifacts" />
-      </div>
-
-      <!-- 启用代码折叠 -->
-      <div class="flex items-center justify-between">
-        <div>
-          <h4 class="font-medium text-gray-800">{{ $t('settings.enableCodeFold') }}</h4>
-          <p class="text-sm text-gray-600">{{ $t('settings.enableCodeFoldDesc') }}</p>
-        </div>
-        <el-switch v-model="settingsStore.settings.enableCodeFold" />
-      </div>
-
       <!-- 面具启动页 -->
       <div class="flex items-center justify-between">
         <div>
