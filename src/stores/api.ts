@@ -122,7 +122,7 @@ Current time: ${new Date().toString()}
 
       console.log('Using model:', actualModel)
       console.log('API URL:', apiUrl)
-      console.log('Request messages:', requestMessages)
+      // console.log('Request messages:', requestMessages)
 
       const requestBody: ChatRequest = {
         messages: requestMessages,
@@ -134,7 +134,7 @@ Current time: ${new Date().toString()}
         top_p: settings.topP || 1,
       }
 
-      console.log('Request body:', JSON.stringify(requestBody, null, 2))
+      // console.log('Request body:', JSON.stringify(requestBody, null, 2))
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -284,7 +284,7 @@ Current time: ${new Date().toString()}
 
       console.log('Using model:', actualModel)
       console.log('API URL:', apiUrl)
-      console.log('Request messages:', requestMessages)
+      // console.log('Request messages:', requestMessages)
 
       const requestBody: ChatRequest = {
         messages: requestMessages,
@@ -296,7 +296,7 @@ Current time: ${new Date().toString()}
         top_p: settings.topP || 1,
       }
 
-      console.log('Request body:', JSON.stringify(requestBody, null, 2))
+      // console.log('Request body:', JSON.stringify(requestBody, null, 2))
 
       const response = await fetch(apiUrl, {
         method: 'POST',

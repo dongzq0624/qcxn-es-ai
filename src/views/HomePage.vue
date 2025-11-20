@@ -1,9 +1,5 @@
 <template>
-  <div
-    ref="chatContainerRef"
-    class="flex flex-1 flex-col bg-white dark:bg-gray-800"
-    :class="{ 'fullscreen-mode': isFullscreen }"
-  >
+  <div ref="chatContainerRef" class="flex min-h-0 flex-1 flex-col bg-white dark:bg-gray-800">
     <!-- 顶部工具栏 -->
     <div
       class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-600"
@@ -39,245 +35,31 @@
         >
           <Download class="h-4 w-4 text-gray-600 dark:text-gray-400" />
         </button>
-        <button
-          class="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
-          :title="isFullscreen ? '退出全屏' : '全屏'"
-          @click="toggleFullscreen"
-        >
-          <component
-            :is="isFullscreen ? Minimize : Maximize"
-            class="h-4 w-4 text-gray-600 dark:text-gray-400"
-          />
-        </button>
       </div>
     </div>
 
-    <!-- 消息显示区域 -->
-    <div class="flex-1 space-y-4 overflow-y-auto p-4 lg:space-y-6 lg:p-6">
-      <!-- 欢迎消息 -->
-      <div
-        v-if="!currentConversation?.messages.length"
-        class="flex h-full flex-col items-center justify-center text-center"
-      >
-        <div class="mb-8">
-          <div class="mb-4 text-6xl">🤖</div>
-          <h3 class="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-200">
-            有什么可以帮助你的吗
-          </h3>
-          <p class="text-gray-500 dark:text-gray-400">开始一个新的对话，探索AI助手的强大功能</p>
-        </div>
-      </div>
-
-      <div
-        v-for="message in currentConversation?.messages"
-        :key="message.id"
-        class="group flex flex-col gap-1"
-      >
-        <!-- 用户消息布局：头像 + 操作按钮 + 消息内容 -->
-        <div v-if="message.sender === 'user'" class="flex flex-col items-end gap-1">
-          <!-- 用户头像 -->
-          <div class="mb-1 flex h-8 w-8 items-center justify-center text-lg">
-            <div v-if="settingsStore.settings.avatar && settingsStore.settings.avatar.length <= 2">
-              {{ settingsStore.settings.avatar }}
-            </div>
-            <User v-else class="h-5 w-5 text-blue-500" />
-          </div>
-
-          <!-- 消息内容和操作按钮同一行 -->
-          <div class="flex items-center gap-2">
-            <!-- 操作按钮在消息左侧 -->
-            <div class="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-              <button
-                class="rounded border border-gray-200 bg-white p-1 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
-                title="复制"
-                @click="copyMessage(message)"
-              >
-                <Copy class="h-3 w-3 text-gray-600 dark:text-gray-400" />
-              </button>
-              <button
-                class="rounded border border-gray-200 bg-white p-1 shadow-sm transition-colors hover:bg-red-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-red-900/20"
-                title="删除"
-                @click="deleteMessage(message.id)"
-              >
-                <Trash2 class="h-3 w-3 text-red-500" />
-              </button>
-            </div>
-
-            <!-- 消息内容 -->
-            <div class="max-w-2xl">
-              <div
-                v-if="message.type === 'text'"
-                class="rounded-2xl bg-blue-500 px-4 py-3 text-white"
-              >
-                {{ message.content }}
-              </div>
-              <div v-else-if="message.type === 'code'" class="relative">
-                <div class="absolute right-2 top-2 z-10">
-                  <span class="rounded bg-gray-700 px-2 py-1 text-xs text-gray-300">JSON</span>
-                </div>
-                <pre
-                  class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100 dark:bg-gray-900"
-                ><code>{{ message.content }}</code></pre>
-              </div>
-              <div class="mt-1 text-right text-xs text-gray-400 dark:text-gray-500">
-                {{ message.timestamp }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- AI消息布局：模型标签 + 操作按钮 + 消息内容 -->
-        <div v-else-if="message.sender === 'assistant'" class="flex flex-col items-start gap-1">
-          <!-- 模型标签和操作按钮同一行 -->
-          <div class="mb-1 flex items-center gap-2">
-            <!-- 具体模型名称 -->
-            <span
-              class="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-400"
-            >
-              {{ message.model === 'deepseek' ? 'DeepSeek' : message.model || 'GPT-3.5' }}
-            </span>
-
-            <!-- 操作按钮在模型名称右侧 -->
-            <div class="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-              <button
-                class="rounded border border-gray-200 bg-white p-1 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
-                title="重试"
-                @click="retryMessage(message)"
-              >
-                <RotateCcw class="h-3 w-3 text-gray-600 dark:text-gray-400" />
-              </button>
-              <button
-                class="rounded border border-gray-200 bg-white p-1 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
-                title="复制"
-                @click="copyMessage(message)"
-              >
-                <Copy class="h-3 w-3 text-gray-600 dark:text-gray-400" />
-              </button>
-              <button
-                class="rounded border border-gray-200 bg-white p-1 shadow-sm transition-colors hover:bg-red-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-red-900/20"
-                title="删除"
-                @click="deleteMessage(message.id)"
-              >
-                <Trash2 class="h-3 w-3 text-red-500" />
-              </button>
-            </div>
-          </div>
-
-          <!-- 消息内容 -->
-          <div class="max-w-2xl">
-            <div
-              v-if="message.type === 'text'"
-              class="rounded-2xl bg-gray-100 px-4 py-3 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-            >
-              <!-- 消息内容 -->
-              <span v-if="message.content">{{ message.content }}</span>
-
-              <!-- 加载状态指示器 -->
-              <div
-                v-if="typingMessages.has(message.id) && !message.content"
-                class="flex items-center gap-2"
-              >
-                <div
-                  class="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                  style="animation-delay: 0ms"
-                />
-                <div
-                  class="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                  style="animation-delay: 150ms"
-                />
-                <div
-                  class="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                  style="animation-delay: 300ms"
-                />
-                <span class="ml-2 text-sm text-gray-500">思考中...</span>
-              </div>
-
-              <!-- 打字效果光标 -->
-              <span
-                v-if="typingMessages.has(message.id) && message.content"
-                class="ml-1 inline-block h-4 w-1 animate-pulse bg-current"
-              />
-            </div>
-            <div v-else-if="message.type === 'code'" class="relative">
-              <div class="absolute right-2 top-2 z-10">
-                <span class="rounded bg-gray-700 px-2 py-1 text-xs text-gray-300">JSON</span>
-              </div>
-              <pre
-                class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100 dark:bg-gray-900"
-              ><code>{{ message.content }}</code></pre>
-            </div>
-            <div class="mt-1 text-right text-xs text-gray-400 dark:text-gray-500">
-              {{ message.timestamp }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 输入区域 -->
-    <div class="border-t border-gray-200 p-4 dark:border-gray-600">
-      <!-- 输入框 -->
-      <div class="flex items-end gap-2">
-        <textarea
-          v-model="inputMessage"
-          :placeholder="'Enter 发送，Shift + Enter 换行，/ 查看命令，粘贴图片'"
-          class="flex-1 resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-800 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-          rows="1"
-          @keydown="handleKeyDown"
-        />
-        <button
-          class="rounded-xl bg-teal-500 px-6 py-3 font-medium text-white shadow-lg transition-colors hover:bg-teal-600"
-          @click="sendMessage"
-        >
-          发送
-        </button>
-      </div>
-
-      <!-- 提示文字 -->
-      <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-        {{ settingsStore.settings.sendMode === 'enter' ? 'Enter 发送' : 'Ctrl + Enter 发送' }},
-        Shift + Enter 换行
-      </p>
-    </div>
+    <!-- 调用 ChatArea 组件处理聊天核心功能 -->
+    <ChatArea />
   </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, nextTick } from 'vue'
-  import {
-    Edit3,
-    Link,
-    Copy,
-    MoreVertical,
-    Camera,
-    Image,
-    FileText,
-    Download,
-    Maximize,
-    Minimize,
-    Trash2,
-    RotateCcw,
-    User,
-    Bot,
-  } from 'lucide-vue-next'
+  import { ref, computed } from 'vue'
+  import { Download, Trash2 } from 'lucide-vue-next'
   import { StopCircle } from 'lucide-vue-next'
   import { useChatStore } from '@/stores/chat'
   import { useSettingsStore } from '@/stores/settings'
   import { useApiStore } from '@/stores/api'
-  import { useI18n } from 'vue-i18n'
-  import type { Message } from '@/stores/chat'
   import { ElMessage } from 'element-plus'
-  import Typewriter from '@/components/Typewriter.vue'
   import * as htmlToImage from 'html-to-image'
+  import ChatArea from '@/components/ChatArea.vue'
 
-  const { t } = useI18n()
   const chatStore = useChatStore()
   const settingsStore = useSettingsStore()
   const apiStore = useApiStore()
-  const inputMessage = ref('')
-  const typingMessages = ref<Set<string>>(new Set()) // 正在打字的消息ID
-  const isFullscreen = ref(false) // 全屏状态
-  const chatContainerRef = ref<HTMLElement>() // 聊天容器引用
+  const typingMessages = ref<Set<string>>(new Set())
+
+  const chatContainerRef = ref<HTMLElement>()
 
   const currentConversation = computed(() => chatStore.currentConversation)
 
@@ -286,94 +68,6 @@
     typingMessages.value.clear()
   }
 
-  const sendMessage = async () => {
-    if (!inputMessage.value.trim()) return
-
-    const message: Message = {
-      id: Date.now().toString(),
-      content: inputMessage.value,
-      type: 'text',
-      timestamp: new Date().toLocaleString(
-        settingsStore.settings.language === 'zh' ? 'zh-CN' : 'en-US'
-      ),
-      sender: 'user',
-      model: settingsStore.settings.model, // 记录使用的模型
-    }
-
-    chatStore.addMessage(chatStore.currentConversationId, message)
-    inputMessage.value = ''
-
-    try {
-      // 获取当前对话的所有消息（包括刚添加的用户消息）
-      const currentConversation = chatStore.currentConversation
-      if (!currentConversation) return
-
-      // 创建AI消息占位符，用于显示加载状态和流式内容
-      const aiMessageId = (Date.now() + 1).toString()
-      const aiMessage: Message = {
-        id: aiMessageId,
-        content: '', // 初始内容为空
-        type: 'text',
-        timestamp: new Date().toLocaleString(
-          settingsStore.settings.language === 'zh' ? 'zh-CN' : 'en-US'
-        ),
-        sender: 'assistant',
-        model: settingsStore.settings.model, // 记录使用的模型
-      }
-
-      // 添加AI消息到对话中
-      chatStore.addMessage(chatStore.currentConversationId, aiMessage)
-
-      // 将AI消息添加到正在打字的集合中
-      typingMessages.value.add(aiMessageId)
-
-      let fullContent = ''
-
-      // 调用流式API
-      await apiStore.sendStreamingMessage(
-        currentConversation.messages,
-        settingsStore.settings.model,
-        {
-          temperature: settingsStore.settings.temperature,
-          presencePenalty: settingsStore.settings.presencePenalty || 0,
-          frequencyPenalty: settingsStore.settings.frequencyPenalty || 0,
-          topP: settingsStore.settings.topP,
-        },
-        (chunk: string) => {
-          // 处理流式响应的每个片段
-          fullContent += chunk
-
-          // 更新AI消息的内容
-          const messageIndex = currentConversation.messages.findIndex(
-            (msg) => msg.id === aiMessageId
-          )
-          if (messageIndex !== -1) {
-            currentConversation.messages[messageIndex].content = fullContent
-          }
-        }
-      )
-
-      // 完成流式响应后，从正在打字的集合中移除
-      typingMessages.value.delete(aiMessageId)
-    } catch (error) {
-      console.error('发送消息失败:', error)
-      ElMessage.error('发送消息失败，请稍后重试')
-
-      // 添加错误消息
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: `错误: ${error instanceof Error ? error.message : '未知错误'}`,
-        type: 'text',
-        timestamp: new Date().toLocaleString(
-          settingsStore.settings.language === 'zh' ? 'zh-CN' : 'en-US'
-        ),
-        sender: 'assistant',
-      }
-      chatStore.addMessage(chatStore.currentConversationId, errorMessage)
-    }
-  }
-
-  // 清除当前聊天内容
   const clearCurrentChat = () => {
     if (!currentConversation.value) return
 
@@ -382,179 +76,35 @@
       return
     }
 
-    // 确认清除
     if (confirm('确定要清除当前聊天的所有内容吗？此操作不可恢复。')) {
-      // 清除当前对话的所有消息
       currentConversation.value.messages = []
       currentConversation.value.lastMessage = ''
 
-      // 保存到localStorage
       localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
 
       ElMessage.success('聊天内容已清除')
     }
   }
 
-  const addNewLine = () => {
-    inputMessage.value += '\n'
-  }
-
-  const createNewChat = () => {
-    chatStore.createNewConversation()
-  }
-
-  // 消息操作函数
-  const copyMessage = async (message: Message) => {
-    try {
-      await navigator.clipboard.writeText(message.content)
-      ElMessage.success('消息已复制到剪贴板')
-    } catch (error) {
-      console.error('复制失败:', error)
-      ElMessage.error('复制失败，请手动复制')
-    }
-  }
-
-  const deleteMessage = (messageId: string) => {
-    if (confirm('确定要删除这条消息吗？')) {
-      const conversation = currentConversation.value
-      if (conversation) {
-        const messageIndex = conversation.messages.findIndex((msg) => msg.id === messageId)
-        if (messageIndex !== -1) {
-          conversation.messages.splice(messageIndex, 1)
-
-          // 更新对话的最后消息和摘要
-          if (conversation.messages.length > 0) {
-            const lastMessage = conversation.messages[conversation.messages.length - 1]
-            conversation.lastMessage =
-              lastMessage.content.substring(0, 50) + (lastMessage.content.length > 50 ? '...' : '')
-          } else {
-            conversation.lastMessage = ''
-          }
-
-          // 更新localStorage
-          localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
-          ElMessage.success('消息已删除')
-        }
-      }
-    }
-  }
-
-  const retryMessage = async (message: Message) => {
-    if (message.sender !== 'assistant') {
-      ElMessage.warning('只能重试AI回复的消息')
-      return
-    }
-
-    const conversation = currentConversation.value
-    if (!conversation) return
-
-    // 找到这条AI消息对应的用户消息（前一条）
-    const messageIndex = conversation.messages.findIndex((msg) => msg.id === message.id)
-    if (messageIndex <= 0) {
-      ElMessage.warning('没有找到对应的用户消息')
-      return
-    }
-
-    const userMessage = conversation.messages[messageIndex - 1]
-    if (userMessage.sender !== 'user') {
-      ElMessage.warning('消息顺序错误')
-      return
-    }
-
-    try {
-      ElMessage.info('正在重试生成回复...')
-
-      // 删除原来的AI回复
-      conversation.messages.splice(messageIndex, 1)
-
-      // 创建新的AI消息占位符
-      const newAiMessageId = Date.now().toString()
-      const newAiMessage: Message = {
-        id: newAiMessageId,
-        content: '', // 初始内容为空
-        type: 'text',
-        timestamp: new Date().toLocaleString(
-          settingsStore.settings.language === 'zh' ? 'zh-CN' : 'en-US'
-        ),
-        sender: 'assistant',
-        model: settingsStore.settings.model,
-      }
-
-      // 在原来位置插入新消息
-      conversation.messages.splice(messageIndex, 0, newAiMessage)
-
-      // 将AI消息添加到正在打字的集合中
-      typingMessages.value.add(newAiMessageId)
-
-      let fullContent = ''
-
-      // 使用流式API重新发送请求
-      await apiStore.sendStreamingMessage(
-        conversation.messages,
-        settingsStore.settings.model,
-        {
-          temperature: settingsStore.settings.temperature,
-          presencePenalty: settingsStore.settings.presencePenalty || 0,
-          frequencyPenalty: settingsStore.settings.frequencyPenalty || 0,
-          topP: settingsStore.settings.topP,
-        },
-        (chunk: string) => {
-          // 处理流式响应的每个片段
-          fullContent += chunk
-
-          // 更新AI消息的内容
-          const msgIndex = conversation.messages.findIndex((msg) => msg.id === newAiMessageId)
-          if (msgIndex !== -1) {
-            conversation.messages[msgIndex].content = fullContent
-          }
-        }
-      )
-
-      // 完成流式响应后，从正在打字的集合中移除
-      typingMessages.value.delete(newAiMessageId)
-
-      // 更新最后一条消息信息
-      if (conversation.messages.length > 0) {
-        const lastMsg = conversation.messages[conversation.messages.length - 1]
-        conversation.lastMessage =
-          lastMsg.content.slice(0, 50) + (lastMsg.content.length > 50 ? '...' : '')
-        conversation.timestamp = new Date().toLocaleString('zh-CN')
-      }
-
-      // 更新localStorage
-      localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
-
-      ElMessage.success('重试成功')
-    } catch (error) {
-      console.error('重试失败:', error)
-      ElMessage.error('重试失败，请稍后重试')
-    }
-  }
-
-  // 导出为PNG功能
   const exportToPNG = async () => {
     try {
-      // 获取消息显示区域
       const messageArea = document.querySelector('.flex-1.overflow-y-auto.p-6') as HTMLElement
       if (!messageArea) {
         ElMessage.error('无法找到消息区域')
         return
       }
 
-      // 显示加载提示
       ElMessage.info('正在生成图片...')
 
-      // 生成PNG图片
       const dataUrl = await htmlToImage.toPng(messageArea, {
         backgroundColor: document.documentElement.classList.contains('dark')
           ? '#1f2937'
           : '#ffffff',
         width: messageArea.scrollWidth,
         height: messageArea.scrollHeight,
-        pixelRatio: 2, // 提高图片质量
+        pixelRatio: 2,
       })
 
-      // 创建下载链接
       const link = document.createElement('a')
       link.download = `chat-${currentConversation.value?.title || 'conversation'}-${new Date().getTime()}.png`
       link.href = dataUrl
@@ -564,51 +114,6 @@
     } catch (error) {
       console.error('导出PNG失败:', error)
       ElMessage.error('导出失败，请重试')
-    }
-  }
-
-  // 全屏功能（仅针对聊天卡片）
-  const toggleFullscreen = () => {
-    if (!chatContainerRef.value) return
-
-    if (!isFullscreen.value) {
-      // 进入全屏模式（模拟）
-      isFullscreen.value = true
-      // 添加全屏样式到根元素
-      document.documentElement.classList.add('chat-fullscreen-mode')
-    } else {
-      // 退出全屏模式
-      isFullscreen.value = false
-      // 移除全屏样式
-      document.documentElement.classList.remove('chat-fullscreen-mode')
-    }
-  }
-
-  // ESC键退出全屏
-  const handleKeyDown = (event: KeyboardEvent) => {
-    // ESC键退出全屏
-    if (event.key === 'Escape' && isFullscreen.value) {
-      toggleFullscreen()
-      return
-    }
-
-    // 原有的发送消息逻辑
-    if (settingsStore.settings.sendMode === 'enter') {
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault()
-        sendMessage()
-      } else if (event.key === 'Enter' && event.shiftKey) {
-        event.preventDefault()
-        addNewLine()
-      }
-    } else {
-      if (event.key === 'Enter' && event.ctrlKey) {
-        event.preventDefault()
-        sendMessage()
-      } else if (event.key === 'Enter' && !event.ctrlKey) {
-        event.preventDefault()
-        addNewLine()
-      }
     }
   }
 </script>
@@ -664,148 +169,19 @@
 </style>
 
 <style scoped>
-  /* 全屏模式样式 - 优化中间区域显示 */
-  :global(.chat-fullscreen-mode) {
-    overflow: hidden;
-  }
-
-  /* 全屏模式下整个应用布局调整 */
-  :global(.chat-fullscreen-mode) .min-h-screen.flex.items-center.justify-center.p-4 {
-    padding: 0 !important;
-    background: #f9fafb !important;
-    transition: all 0.3s ease-in-out;
-    min-height: 100vh !important;
-    align-items: stretch !important;
-  }
-
-  /* 全屏模式下主容器调整 */
-  :global(.chat-fullscreen-mode) .w-full.max-w-6xl.h-\[90vh\] {
-    max-width: none !important;
-    height: 100vh !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    transition: all 0.3s ease-in-out;
-    display: flex !important;
-    flex-direction: row !important;
-  }
-
-  /* 全屏模式优化 - 使中间区域充满屏幕 */
-  :global(.chat-fullscreen-mode) {
-    overflow: hidden !important;
-  }
-
-  /* 全屏模式下移除卡片容器的最大宽度和边距 */
-  :global(.chat-fullscreen-mode) .w-full.max-w-6xl.h-\[90vh\] {
-    max-width: none !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-  }
-
-  /* 全屏模式下侧边栏样式优化 */
-  :global(.chat-fullscreen-mode) .fixed.lg\\:relative.z-50.h-full {
-    height: 100vh !important;
-    transition: all 0.3s ease-in-out;
-  }
-
-  /* 全屏模式下聊天区域最大化 */
-  :global(.chat-fullscreen-mode) .flex-1.flex.flex-col.min-w-0 {
-    flex: 1 !important;
-    min-width: 0 !important;
-    height: 100vh !important;
-    transition: all 0.3s ease-in-out;
-  }
-
-  /* 全屏模式下当前组件容器 */
-  .fullscreen-mode {
-    flex: 1 !important;
-    width: 100% !important;
-    height: 100vh !important;
-    display: flex !important;
-    flex-direction: column !important;
-    transition: all 0.3s ease-in-out;
-  }
-
-  /* 全屏模式下消息区域最大化 - 关键优化 */
-  .fullscreen-mode .flex-1.overflow-y-auto.p-6 {
-    flex: 1 !important;
-    height: calc(100vh - 120px) !important; /* 减去顶部工具栏和输入区域的高度 */
-    max-height: none !important;
-    padding: 2rem 3rem !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 1.5rem !important;
-    overflow-y: auto !important;
-  }
-
-  /* 全屏模式下的顶部工具栏样式 */
-  :global(.chat-fullscreen-mode) .flex.items-center.justify-between.p-4 {
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(229, 231, 235, 0.5) !important;
-    padding: 1rem 3rem !important;
-    height: 60px !important; /* 固定高度 */
-    flex-shrink: 0 !important;
-  }
-
-  /* 全屏模式下输入区域优化 */
-  :global(.chat-fullscreen-mode) .border-t.border-gray-200.p-4 {
-    padding: 1.5rem 3rem !important;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(10px);
-    height: 60px !important; /* 固定高度 */
-    flex-shrink: 0 !important;
-  }
-
-  /* 全屏模式下暗色主题支持 */
-  :global(.dark.chat-fullscreen-mode) .flex.items-center.justify-between.p-4 {
-    background: rgba(31, 41, 55, 0.95) !important;
-    border-bottom: 1px solid rgba(55, 65, 81, 0.5) !important;
-  }
-
-  :global(.dark.chat-fullscreen-mode) .border-t.border-gray-200.p-4 {
-    background: rgba(31, 41, 55, 0.95) !important;
-    border-top: 1px solid rgba(55, 65, 81, 0.5) !important;
-  }
-
-  /* 深色模式下的全屏样式 */
-  :global(.dark.chat-fullscreen-mode) .min-h-screen.flex.items-center.justify-center.p-4 {
-    background: #111827 !important;
-  }
-
-  :global(.dark.chat-fullscreen-mode) .flex.items-center.justify-between.p-4 {
-    background: rgba(31, 41, 55, 0.95) !important;
-    border-bottom: 1px solid rgba(75, 85, 99, 0.5) !important;
-  }
-
-  :global(.dark.chat-fullscreen-mode) .border-t.border-gray-200.p-4 {
-    background: rgba(17, 24, 39, 0.95) !important;
-    border-top: 1px solid rgba(55, 65, 81, 0.5) !important;
-  }
-
-  /* 全屏模式下的消息样式优化 */
-  :global(.chat-fullscreen-mode) .max-w-3xl {
-    max-width: 80rem !important;
-  }
-
-  :global(.chat-fullscreen-mode) .max-w-2xl {
-    max-width: 60rem !important;
-  }
-
   /* 移动端优化 - 使聊天区域充满屏幕 */
   @media (max-width: 1023px) {
     /* 移动端消息区域最大化 */
     .flex-1.overflow-y-auto.p-6 {
       flex: 1 !important;
-      height: calc(100vh - 56px - 180px) !important; /* 减去顶部栏和输入区域高度 */
-      max-height: calc(100vh - 56px - 180px) !important;
+      min-height: 0 !important;
       padding: 1rem !important;
       display: flex !important;
       flex-direction: column !important;
       gap: 1rem !important;
       overflow-y: auto !important;
+
+      /* 移除固定高度，让flex布局自动处理 */
     }
 
     /* 移动端顶部工具栏优化 */
@@ -819,7 +195,7 @@
     .border-t.border-gray-200.p-4 {
       padding: 0.75rem 1rem !important;
       flex-shrink: 0 !important;
-      max-height: 180px !important; /* 限制输入区域最大高度 */
+      max-height: 180px !important;
     }
 
     /* 移动端textarea优化 */
@@ -833,8 +209,9 @@
   @media (max-width: 1023px) and (orientation: landscape) {
     /* 横屏时消息区域 */
     .flex-1.overflow-y-auto.p-6 {
-      height: calc(100vh - 48px - 140px) !important; /* 横屏顶部栏更矮 */
-      max-height: calc(100vh - 48px - 140px) !important;
+      min-height: 0 !important;
+
+      /* 移除固定高度，让flex布局自动处理 */
     }
 
     /* 横屏时输入区域 */

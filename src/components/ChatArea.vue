@@ -1,52 +1,7 @@
 <template>
-  <div class="flex h-screen flex-1 flex-col bg-gray-50 dark:bg-gray-900">
-    <!-- 顶部工具栏 - DeepSeek风格 -->
-    <div
-      class="flex items-center justify-between border-b border-gray-200 bg-white/70 p-4 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/70"
-    >
-      <div class="flex items-center gap-3">
-        <div
-          class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-purple-600"
-        >
-          <span class="text-sm font-bold text-white">AI</span>
-        </div>
-        <div>
-          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-            {{ currentConversation?.title || '新的聊天' }}
-          </h2>
-          <p class="text-xs text-gray-500 dark:text-gray-400">
-            {{ currentConversation?.messages.length || 0 }} 条消息
-          </p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button
-          class="group rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
-        >
-          <Edit3 class="h-4 w-4 text-gray-600 group-hover:text-blue-500 dark:text-gray-300" />
-        </button>
-        <button
-          class="group rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
-        >
-          <Link class="h-4 w-4 text-gray-600 group-hover:text-blue-500 dark:text-gray-300" />
-        </button>
-        <button
-          class="group rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
-        >
-          <Copy class="h-4 w-4 text-gray-600 group-hover:text-blue-500 dark:text-gray-300" />
-        </button>
-        <button
-          class="group rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
-        >
-          <MoreVertical
-            class="h-4 w-4 text-gray-600 group-hover:text-blue-500 dark:text-gray-300"
-          />
-        </button>
-      </div>
-    </div>
-
-    <!-- 消息显示区域 - DeepSeek风格 -->
-    <div ref="messagesContainer" class="flex-1 overflow-y-auto p-6">
+  <div class="flex min-h-0 flex-1 flex-col bg-gray-50 dark:bg-gray-900">
+    <!-- 消息显示区域 - 使用flex-1和min-h-0确保内容溢出时能正确滚动 -->
+    <div ref="messagesContainer" class="min-h-0 flex-1 overflow-y-auto p-6">
       <div class="mx-auto max-w-3xl space-y-6">
         <div v-if="!currentConversation?.messages.length" class="mt-16 text-center text-gray-500">
           <div class="mx-auto max-w-md">
@@ -61,139 +16,103 @@
             <p class="text-gray-500 dark:text-gray-400">开始一个新的对话，探索无限可能</p>
           </div>
         </div>
-      </div>
 
-      <div
-        v-for="message in currentConversation?.messages"
-        :key="message.id"
-        class="message-item relative flex flex-col gap-3"
-      >
-        <!-- 预览气泡 -->
         <div
-          v-if="
-            settingsStore.settings.previewBubble &&
-            message.sender === 'assistant' &&
-            message.content.length > 100
-          "
-          class="absolute -top-8 left-0 z-10 max-w-xs truncate rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity hover:opacity-100"
+          v-for="message in currentConversation?.messages"
+          :key="message.id"
+          class="message-item relative flex flex-col gap-3"
         >
-          {{ message.content.slice(0, 50) }}...
-        </div>
-
-        <!-- 消息内容 - DeepSeek风格 -->
-        <div :class="['flex gap-3', message.sender === 'user' ? 'justify-end' : 'justify-start']">
-          <!-- AI头像 -->
-          <div v-if="message.sender === 'assistant'" class="flex-shrink-0">
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"
-            >
-              <img src="@/assets/deepseek_logo.svg" alt="DeepSeek" class="h-6 w-6" />
-            </div>
-          </div>
-
-          <!-- 用户头像 -->
-          <div v-if="message.sender === 'user'" class="order-2 flex-shrink-0">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500">
-              <span class="font-semibold text-white">{{ settingsStore.settings.avatar }}</span>
-            </div>
-          </div>
-
-          <div :class="['max-w-3xl', message.sender === 'user' ? 'order-1' : 'order-2']">
-            <div v-if="message.sender === 'assistant'" class="mb-1 flex items-center gap-2">
-              <img src="@/assets/deepseek_logo.svg" alt="DeepSeek" class="h-4 w-4" />
-              <span
-                class="rounded border border-gray-200 bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-              >
-                DeepSeek
-              </span>
-            </div>
-            <div
-              v-if="message.type === 'text'"
-              :class="[
-                'group relative max-w-2xl rounded-xl px-5 py-4',
-                message.sender === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : 'border border-gray-200 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100',
-              ]"
-              :style="{
-                fontSize: settingsStore.settings.fontSize + 'px',
-                fontFamily: settingsStore.settings.chatFont,
-              }"
-            >
-              <!-- 统一使用Markdown渲染，包括JSON内容 -->
+          <!-- ChatGPT风格：消息内容 -->
+          <div :class="['flex gap-3', message.sender === 'user' ? 'justify-end' : 'justify-start']">
+            <!-- AI头像 - ChatGPT风格 -->
+            <div v-if="message.sender === 'assistant'" class="flex-shrink-0">
               <div
-                v-if="message.sender === 'user'"
-                class="prose prose-sm markdown-content max-w-none overflow-x-auto leading-relaxed"
-                :class="'prose-invert text-white'"
-                v-html="renderMarkdownHtml(formatMessageContent(message.content))"
-              ></div>
-              <!-- AI消息使用Typewriter组件实现流式渲染 -->
-              <Typewriter
-                v-else
-                :text="formatMessageContent(message.content)"
-                :streaming="typingMessages.has(message.id)"
-                @complete="handleMessageComplete(message)"
-              />
+                class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600"
               >
-
-              <!-- 消息操作按钮 -->
-              <div
-                class="absolute bottom-2 right-2 flex items-center gap-1 text-gray-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:text-gray-400"
-              >
-                <button
-                  v-if="message.sender === 'assistant'"
-                  @click="retryMessage(message)"
-                  class="rounded-md p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  title="重试"
-                >
-                  <RotateCcw class="h-4 w-4" />
-                </button>
-                <button
-                  @click="copyMessage(message)"
-                  class="rounded-md p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  title="复制"
-                >
-                  <Copy class="h-4 w-4" />
-                </button>
-                <button
-                  @click="deleteMessage(message.id)"
-                  class="rounded-md p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  title="删除"
-                >
-                  <Trash2 class="h-4 w-4" />
-                </button>
+                <span class="text-sm font-semibold text-white">AI</span>
               </div>
             </div>
 
-            <!-- 代码块 -->
-            <div v-else-if="message.type === 'code'" class="group relative">
-              <div class="absolute right-2 top-2 z-10 flex gap-1">
-                <!-- 模式切换按钮 -->
-                <div class="flex gap-1">
+            <!-- 用户头像 - ChatGPT风格 -->
+            <div v-if="message.sender === 'user'" class="order-2 flex-shrink-0">
+              <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700">
+                <span class="text-xs font-semibold text-white">
+                  {{ settingsStore.settings.avatar }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 消息气泡容器 -->
+            <div :class="['max-w-3xl', message.sender === 'user' ? 'order-1' : 'order-2']">
+              <!-- ChatGPT风格：AI助手标识 -->
+              <div v-if="message.sender === 'assistant'" class="mb-1 flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {{ settingsStore.settings.language === 'zh' ? 'AI 助手' : 'AI Assistant' }}
+                </span>
+              </div>
+
+              <!-- ChatGPT风格：消息气泡 -->
+              <div
+                v-if="message.type === 'text'"
+                :class="[
+                  'message-content group relative max-w-2xl rounded-lg px-4 py-3.5',
+                  message.sender === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100',
+                ]"
+                :style="{
+                  fontSize: settingsStore.settings.fontSize + 'px',
+                  fontFamily: settingsStore.settings.chatFont,
+                }"
+              >
+                <div v-html="formatMessage(message.content)"></div>
+                <!-- ChatGPT风格：消息操作按钮 -->
+                <div
+                  class="absolute right-2 top-2 flex items-center gap-1 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                  :class="
+                    message.sender === 'user' ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'
+                  "
+                >
                   <button
-                    @click="setPreviewMode('md')"
-                    :class="[
-                      'rounded px-2 py-1 text-xs',
-                      previewMode === 'md' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300',
-                    ]"
+                    v-if="message.sender === 'assistant'"
+                    @click="retryMessage(message)"
+                    class="rounded-md p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
+                    title="重试"
                   >
-                    MD
+                    <RotateCcw class="h-3.5 w-3.5" />
                   </button>
                   <button
-                    @click="setPreviewMode('json')"
-                    :class="[
-                      'rounded px-2 py-1 text-xs',
-                      previewMode === 'json'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-700 text-gray-300',
-                    ]"
+                    @click="copyMessage(message)"
+                    class="rounded-md p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
+                    title="复制"
                   >
-                    JSON
+                    <Copy class="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    @click="deleteMessage(message.id)"
+                    class="rounded-md p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
+                    title="删除"
+                  >
+                    <Trash2 class="h-3.5 w-3.5" />
                   </button>
                 </div>
+              </div>
 
-                <!-- 消息操作按钮 -->
-                <div class="flex gap-1">
+              <!-- ChatGPT风格：代码块 -->
+              <div v-else-if="message.type === 'code'" class="message-content group relative">
+                <!-- ChatGPT风格：代码块容器 -->
+                <div
+                  class="prose prose-sm dark:bg-gray-850 max-w-none overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm"
+                  :style="{
+                    fontSize: settingsStore.settings.fontSize + 'px',
+                    fontFamily: settingsStore.settings.chatFont,
+                  }"
+                >
+                  <div v-html="formatMessage(message.content)"></div>
+                </div>
+
+                <!-- ChatGPT风格：代码操作按钮 -->
+                <div class="absolute right-2 top-2 z-10 flex gap-1">
                   <button
                     v-if="message.sender === 'assistant'"
                     @click="retryMessage(message)"
@@ -218,84 +137,31 @@
                   </button>
                 </div>
               </div>
-              <!-- JSON模式 - DeepSeek风格 -->
+
+              <!-- 时间戳 -  -->
               <div
-                v-show="!isCodeFolded(message.id) && previewMode === 'json'"
-                class="group relative"
+                class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400"
               >
-                <!-- 代码块头部 -->
                 <div
-                  class="absolute left-0 right-0 top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-4 py-3 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                  v-if="message.sender === 'assistant' && message.model"
+                  class="flex items-center gap-2"
                 >
-                  <div class="flex items-center gap-3">
-                    <div class="flex h-6 w-6 items-center justify-center rounded-md bg-blue-500">
-                      <Code class="h-3 w-3 text-white" />
-                    </div>
-                    <span class="text-sm font-semibold">JSON</span>
-                    <span class="rounded bg-gray-700 px-2 py-1 text-xs text-gray-400">格式化</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <button
-                      @click="copyCode(formatJsonContent(message.content), 'json')"
-                      class="group rounded-lg p-2 transition-colors hover:bg-gray-700"
-                      title="复制代码"
-                    >
-                      <Copy class="h-4 w-4 group-hover:text-blue-400" />
-                    </button>
-                    <button
-                      @click="downloadCode(formatJsonContent(message.content), 'json')"
-                      class="group rounded-lg p-2 transition-colors hover:bg-gray-700"
-                      title="下载代码"
-                    >
-                      <Download class="h-4 w-4 group-hover:text-green-400" />
-                    </button>
-                  </div>
+                  <span
+                    class="rounded-full bg-gradient-to-r from-blue-100 to-purple-100 px-2 py-1 text-xs font-medium text-blue-700 dark:from-blue-900/30 dark:to-purple-900/30 dark:text-blue-300"
+                  >
+                    {{ message.model }}
+                  </span>
                 </div>
-                <pre
-                  class="overflow-x-auto rounded-b-xl border border-gray-200 bg-gray-50 p-6 pt-16 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                  :style="{
-                    fontSize: settingsStore.settings.fontSize + 'px',
-                    fontFamily:
-                      settingsStore.settings.chatFont || 'Fira Code, Monaco, Consolas, monospace',
-                  }"
-                ><code class="language-json">{{ formatJsonContent(message.content) }}</code></pre>
-              </div>
-
-              <!-- Markdown模式 - DeepSeek风格 -->
-              <div
-                v-show="!isCodeFolded(message.id) && previewMode === 'md'"
-                class="prose prose-sm max-w-none overflow-x-auto rounded-xl border border-gray-200 bg-white p-6 text-sm dark:border-gray-700 dark:bg-gray-800"
-                :style="{
-                  fontSize: settingsStore.settings.fontSize + 'px',
-                  fontFamily: settingsStore.settings.chatFont,
-                }"
-                v-html="renderMarkdownHtml(formatMessageContent(message.content))"
-              ></div>
-            </div>
-
-            <!-- 时间戳 - DeepSeek风格 -->
-            <div
-              class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400"
-            >
-              <div
-                v-if="message.sender === 'assistant' && message.model"
-                class="flex items-center gap-2"
-              >
-                <span
-                  class="rounded-full bg-gradient-to-r from-blue-100 to-purple-100 px-2 py-1 text-xs font-medium text-blue-700 dark:from-blue-900/30 dark:to-purple-900/30 dark:text-blue-300"
-                >
-                  {{ message.model }}
-                </span>
-              </div>
-              <div
-                class="flex items-center gap-2"
-                :class="message.sender === 'user' ? 'ml-auto' : ''"
-              >
-                <span class="text-gray-400 dark:text-gray-500">{{ message.timestamp }}</span>
                 <div
-                  class="h-2 w-2 animate-pulse rounded-full bg-green-400"
-                  v-if="typingMessages.has(message.id)"
-                ></div>
+                  class="flex items-center gap-2"
+                  :class="message.sender === 'user' ? 'ml-auto' : ''"
+                >
+                  <span class="text-gray-400 dark:text-gray-500">{{ message.timestamp }}</span>
+                  <div
+                    class="h-2 w-2 animate-pulse rounded-full bg-green-400"
+                    v-if="typingMessages.has(message.id)"
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
@@ -303,38 +169,12 @@
       </div>
     </div>
 
-    <!-- 输入区域 - DeepSeek风格 -->
+    <!-- 输入区域 - 使用flex-shrink-0确保固定在底部 -->
     <div
-      class="border-t border-gray-200 bg-white/70 p-6 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/70"
+      class="flex-shrink-0 border-t border-gray-200 bg-white/70 p-6 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/70"
     >
-      <!-- 工具栏 -->
-      <div class="mb-4 flex items-center gap-3">
-        <button
-          class="group rounded-xl p-3 transition-all hover:bg-gray-100 dark:hover:bg-gray-700"
-        >
-          <Camera class="h-5 w-5 text-gray-600 group-hover:text-blue-500 dark:text-gray-300" />
-        </button>
-        <button
-          class="group rounded-xl p-3 transition-all hover:bg-gray-100 dark:hover:bg-gray-700"
-        >
-          <Image class="h-5 w-5 text-gray-600 group-hover:text-blue-500 dark:text-gray-300" />
-        </button>
-        <button
-          class="group rounded-xl p-3 transition-all hover:bg-gray-100 dark:hover:bg-gray-700"
-        >
-          <FileText class="h-5 w-5 text-gray-600 group-hover:text-blue-500 dark:text-gray-300" />
-        </button>
-        <div class="flex-1"></div>
-        <button
-          @click="createNewChat"
-          class="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-        >
-          {{ $t('chat.newChat') }}
-        </button>
-      </div>
-
       <!-- 输入框 -->
-      <div class="flex items-end gap-3">
+      <div class="flex items-center gap-3">
         <div class="relative flex-1">
           <textarea
             v-model="inputMessage"
@@ -369,7 +209,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, nextTick, watch, onMounted } from 'vue'
+  import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
   import {
     Edit3,
     Link,
@@ -378,365 +218,38 @@
     Camera,
     Image,
     FileText,
-    RotateCcw,
     Trash2,
-    ChevronDown,
-    ChevronRight,
-    Download,
-    Code,
+    RotateCcw,
   } from 'lucide-vue-next'
   import { useChatStore } from '@/stores/chat'
   import { useSettingsStore } from '@/stores/settings'
   import { useApiStore } from '@/stores/api'
-  import { ElMessage } from 'element-plus'
-  import { formatMessageContent, isJsonString, renderMarkdownHtml } from '@/utils/markdown'
+  import { useI18n } from 'vue-i18n'
   import type { Message } from '@/stores/chat'
+  import { ElMessage } from 'element-plus'
+  import { marked } from 'marked'
   import hljs from 'highlight.js'
-  import Typewriter from '@/components/Typewriter.vue'
+  import DOMPurify from 'dompurify'
 
+  const { t } = useI18n()
   const chatStore = useChatStore()
   const settingsStore = useSettingsStore()
   const apiStore = useApiStore()
   const inputMessage = ref('')
-
-  // 消息容器引用，用于自动滚动
-  const messagesContainer = ref<HTMLElement>()
-
-  // 预览模式状态
-  const previewMode = ref<'json' | 'md'>('md')
-
-  // 打字消息状态
   const typingMessages = ref<Set<string>>(new Set())
-
-  // 存储正在流式处理的消息内容
-  const streamingMessageContents = ref<Map<string, string>>(new Map())
-
-  // 处理消息流式完成事件
-  const handleMessageComplete = (message: Message) => {
-    // 从打字状态中移除
-    typingMessages.value.delete(message.id)
-
-    // 清除存储的流式内容
-    streamingMessageContents.value.delete(message.id)
-
-    // 重新高亮所有代码块
-    nextTick(() => {
-      hljs.highlightAll()
-    })
-  }
-
-  // DeepSeek风格文本格式化函数
-  const formatForDeepSeek = (text: string): string => {
-    // 1. 添加适当的段落分隔
-    let formatted = text.replace(/\n\n/g, '\n\n')
-
-    // 2. 增强标题格式（DeepSeek通常使用更突出的标题样式）
-    formatted = formatted.replace(/^(#{1,6})\s+(.*)$/gm, (match, hashes, title) => {
-      const level = hashes.length
-      // 添加标题后的分隔线，增强DeepSeek风格
-      if (level <= 3) {
-        return `${hashes} ${title}\n${'-'.repeat(title.length)}`
-      }
-      return match
-    })
-
-    // 3. 增强列表项（添加更明显的缩进）
-    formatted = formatted.replace(/^(\s*)([-*+]|\d+\.)\s+(.*)$/gm, '$1$2  $3')
-
-    // 4. 代码块添加语法说明（如果没有指定）
-    formatted = formatted.replace(/```\n([\s\S]*?)```/g, '```javascript\n$1```')
-
-    return formatted
-  }
-
-  // DeepSeek风格模拟流式回复函数
-  const simulateStreamingResponse = (messageId: string, fullContent: string, delay = 10) => {
-    let index = 0
-    const message = currentConversation.value?.messages.find((m) => m.id === messageId)
-
-    if (!message) return
-
-    // DeepSeek风格：设置为打字状态
-    typingMessages.value.add(messageId)
-
-    // 存储初始内容
-    streamingMessageContents.value.set(messageId, '')
-
-    // DeepSeek风格：分块流式输出（按句子或短语）
-    const streamNextChunk = () => {
-      if (index < fullContent.length) {
-        // DeepSeek风格：优先按标点符号分块
-        let nextIndex = fullContent.indexOf('. ', index)
-        if (nextIndex === -1) nextIndex = fullContent.indexOf('? ', index)
-        if (nextIndex === -1) nextIndex = fullContent.indexOf('! ', index)
-        if (nextIndex === -1) nextIndex = fullContent.indexOf('\n', index)
-        if (nextIndex === -1 || nextIndex > index + 20) nextIndex = index + 15
-
-        nextIndex++ // 包含标点符号
-
-        // 取当前块
-        const chunk = fullContent.substring(index, nextIndex)
-        index = nextIndex
-
-        // 更新存储的内容
-        const currentContent = streamingMessageContents.value.get(messageId) || ''
-        const newContent = currentContent + chunk
-        streamingMessageContents.value.set(messageId, newContent)
-
-        // 更新消息内容
-        message.content = newContent
-
-        // DeepSeek风格：调整延迟使其更自然
-        let nextDelay = delay * chunk.length
-        if (chunk.includes('\n')) {
-          nextDelay += 100 // 换行后停顿更长
-        } else if (chunk.match(/[.!?]$/)) {
-          nextDelay += 50 // 句子结束停顿
-        }
-
-        // 继续流式输出
-        setTimeout(streamNextChunk, Math.min(nextDelay, 500)) // 最大延迟限制
-      } else {
-        // 流式完成
-        handleMessageComplete(message)
-      }
-    }
-
-    // 开始流式输出
-    streamNextChunk()
-  }
-
-  // 代码折叠状态
-  const foldedCodeBlocks = ref<Set<string>>(new Set())
+  const messagesContainer = ref<HTMLElement | null>(null)
 
   const currentConversation = computed(() => chatStore.currentConversation)
 
-  // 检测文本中是否包含代码块
-  const hasCodeBlock = (content: string): boolean => {
-    return (
-      content.includes('```') ||
-      content.includes('`') ||
-      content.includes('function') ||
-      content.includes('const ')
-    )
-  }
+  // 统一的消息格式化函数
+  const formatMessage = (content: string): string => {
+    // 使用 marked 解析 Markdown
+    let parsedContent = marked.parse(content) as string
 
-  // 提取并格式化代码块
-  const extractCodeBlocks = (content: string): Array<{ code: string; language: string }> => {
-    const codeBlocks: Array<{ code: string; language: string }> = []
-    const regex = /```(\w*)\n([\s\S]*?)```/g
-    let match
+    // 使用 DOMPurify 进行 XSS 防护
+    parsedContent = DOMPurify.sanitize(parsedContent)
 
-    while ((match = regex.exec(content)) !== null) {
-      codeBlocks.push({
-        language: match[1] || 'javascript',
-        code: match[2].trim(),
-      })
-    }
-
-    return codeBlocks
-  }
-
-  // 自动滚动到底部函数
-  const scrollToBottom = async () => {
-    await nextTick()
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-    }
-  }
-
-  // 监听消息变化，自动滚动到底部
-  watch(
-    () => currentConversation.value?.messages.length,
-    () => {
-      scrollToBottom()
-      nextTick(() => {
-        hljs.highlightAll()
-        // 确保所有表格有适当的样式
-        document.querySelectorAll('.prose table').forEach((table) => {
-          table.classList.add('border-collapse', 'w-full', 'text-sm')
-          table.querySelectorAll('th, td').forEach((cell) => {
-            cell.classList.add('border', 'px-3', 'py-2')
-          })
-        })
-        // 确保代码块有适当的样式
-        document.querySelectorAll('.prose pre code').forEach((code) => {
-          code.classList.add('p-4', 'rounded', 'overflow-x-auto')
-        })
-      })
-    },
-    { flush: 'post' }
-  )
-
-  // 预览模式切换函数
-  const setPreviewMode = (mode: 'json' | 'md') => {
-    previewMode.value = mode
-  }
-
-  // JSON内容格式化函数
-  const formatJsonContent = (content: string): string => {
-    try {
-      // 尝试解析并重新格式化JSON
-      const parsed = JSON.parse(content)
-      return JSON.stringify(parsed, null, 2)
-    } catch (error) {
-      // 如果不是有效的JSON，返回原始内容
-      return content
-    }
-  }
-
-  // 代码复制函数
-  const copyCode = async (code: string, language = 'javascript') => {
-    try {
-      await navigator.clipboard.writeText(code)
-      ElMessage.success(`${language.toUpperCase()} 代码已复制到剪贴板`)
-    } catch (error) {
-      console.error('复制失败:', error)
-      ElMessage.error('复制失败，请手动复制')
-    }
-  }
-
-  // 代码下载函数
-  const downloadCode = (code: string, language = 'javascript') => {
-    const blob = new Blob([code], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `code.${language}`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-    ElMessage.success(`${language.toUpperCase()} 代码已下载`)
-  }
-
-  // 代码折叠相关函数
-  const toggleCodeFold = (messageId: string) => {
-    if (foldedCodeBlocks.value.has(messageId)) {
-      foldedCodeBlocks.value.delete(messageId)
-    } else {
-      foldedCodeBlocks.value.add(messageId)
-    }
-  }
-
-  const isCodeFolded = (messageId: string): boolean => {
-    return foldedCodeBlocks.value.has(messageId)
-  }
-
-  // 消息操作函数
-  const copyMessage = async (message: Message) => {
-    try {
-      await navigator.clipboard.writeText(message.content)
-      ElMessage.success('消息已复制到剪贴板')
-    } catch (error) {
-      console.error('复制失败:', error)
-      ElMessage.error('复制失败，请手动复制')
-    }
-  }
-
-  const deleteMessage = (messageId: string) => {
-    if (confirm('确定要删除这条消息吗？')) {
-      const conversation = currentConversation.value
-      if (conversation) {
-        const messageIndex = conversation.messages.findIndex((msg) => msg.id === messageId)
-        if (messageIndex !== -1) {
-          conversation.messages.splice(messageIndex, 1)
-
-          // 更新最后一条消息信息
-          if (conversation.messages.length > 0) {
-            const lastMsg = conversation.messages[conversation.messages.length - 1]
-            conversation.lastMessage =
-              lastMsg.content.slice(0, 50) + (lastMsg.content.length > 50 ? '...' : '')
-            conversation.timestamp = new Date().toLocaleString('zh-CN')
-          } else {
-            // 如果没有消息了，重置最后消息信息
-            conversation.lastMessage = ''
-            conversation.timestamp = new Date().toLocaleString('zh-CN')
-          }
-
-          // 更新localStorage
-          localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
-          ElMessage.success('消息已删除')
-        }
-      }
-    }
-  }
-
-  const retryMessage = async (message: Message) => {
-    if (message.sender !== 'assistant') {
-      ElMessage.warning('只能重试AI回复的消息')
-      return
-    }
-
-    const conversation = currentConversation.value
-    if (!conversation) return
-
-    // 找到这条AI消息对应的用户消息（前一条）
-    const messageIndex = conversation.messages.findIndex((msg) => msg.id === message.id)
-    if (messageIndex <= 0) {
-      ElMessage.warning('没有找到对应的用户消息')
-      return
-    }
-
-    const userMessage = conversation.messages[messageIndex - 1]
-    if (userMessage.sender !== 'user') {
-      ElMessage.warning('消息顺序错误')
-      return
-    }
-
-    try {
-      ElMessage.info('正在重试生成回复...')
-
-      // 删除原来的AI回复
-      conversation.messages.splice(messageIndex, 1)
-
-      // 重新发送请求
-      const aiResponse = await apiStore.sendMessage(
-        conversation.messages,
-        settingsStore.settings.model,
-        {
-          temperature: settingsStore.settings.temperature,
-          presencePenalty: settingsStore.settings.presencePenalty || 0,
-          frequencyPenalty: settingsStore.settings.frequencyPenalty || 0,
-          topP: settingsStore.settings.topP,
-        }
-      )
-
-      // 添加新的AI回复
-      const retryLocale =
-        settingsStore.settings.language === 'zh'
-          ? 'zh-CN'
-          : settingsStore.settings.language === 'ko'
-            ? 'ko-KR'
-            : 'en-US'
-      const newAiMessage: Message = {
-        id: Date.now().toString(),
-        content: aiResponse,
-        type: 'text',
-        timestamp: new Date().toLocaleString(retryLocale),
-        sender: 'assistant',
-        model: settingsStore.settings.model,
-      }
-
-      // 在原来位置插入新消息
-      conversation.messages.splice(messageIndex, 0, newAiMessage)
-
-      // 更新最后一条消息信息
-      if (conversation.messages.length > 0) {
-        const lastMsg = conversation.messages[conversation.messages.length - 1]
-        conversation.lastMessage =
-          lastMsg.content.slice(0, 50) + (lastMsg.content.length > 50 ? '...' : '')
-        conversation.timestamp = new Date().toLocaleString('zh-CN')
-      }
-
-      // 更新localStorage
-      localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
-
-      ElMessage.success('重试成功')
-    } catch (error) {
-      console.error('重试失败:', error)
-      ElMessage.error('重试失败，请稍后重试')
-    }
+    return parsedContent
   }
 
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -759,158 +272,6 @@
     }
   }
 
-  const sendMessage = () => {
-    if (!inputMessage.value.trim()) return
-
-    const userLocale =
-      settingsStore.settings.language === 'zh'
-        ? 'zh-CN'
-        : settingsStore.settings.language === 'ko'
-          ? 'ko-KR'
-          : 'en-US'
-    const message: Message = {
-      id: Date.now().toString(),
-      content: inputMessage.value,
-      type: 'text',
-      timestamp: new Date().toLocaleString(userLocale),
-      sender: 'user',
-    }
-
-    chatStore.addMessage(chatStore.currentConversationId, message)
-    inputMessage.value = ''
-
-    setTimeout(() => {
-      let aiContent =
-        settingsStore.settings.language === 'zh'
-          ? '这是AI助手的回复消息。'
-          : 'This is a reply from the AI assistant.'
-      let messageType: 'text' | 'code' = 'text'
-
-      const lastUserMsg =
-        currentConversation.value?.messages.filter((m) => m.sender === 'user').slice(-1)[0]
-          ?.content || ''
-
-      if (/js\s*数组\s*去重/i.test(lastUserMsg) || /JavaScript.*去重/.test(lastUserMsg)) {
-        aiContent = [
-          '好的，以下是 JavaScript 数组去重的常见方法，并附示例与优缺点：',
-          '',
-          '一、推荐方法',
-          '',
-          '1) 使用 Set（最简洁，ES6+）',
-          '',
-          '```javascript',
-          'const original = [1, 2, 2, 3, 4, 4, 5, "a", "a", "b"]',
-          'const unique = [...new Set(original)]',
-          'console.log(unique) // [1,2,3,4,5,"a","b"]',
-          '```',
-          '',
-          '优点：语义清晰、性能好、代码短。缺点：仅对基本类型有效；对象引用不同视为不同元素。',
-          '',
-          '2) 使用 Array.from + Set（同上）',
-          '',
-          '```javascript',
-          'const unique = Array.from(new Set(original))',
-          '```',
-          '',
-          '二、经典方法',
-          '',
-          '3) filter + indexOf',
-          '',
-          '```javascript',
-          'const unique = original.filter((item, index) => original.indexOf(item) === index)',
-          '```',
-          '',
-          '4) reduce + Map（支持按键去重，适合对象数组）',
-          '',
-          '```javascript',
-          'const arr = [',
-          '  { id: 1, name: "A" },',
-          '  { id: 2, name: "B" },',
-          '  { id: 1, name: "A2" }',
-          ']',
-          'const uniqueById = [...arr.reduce((map, item) => map.set(item.id, item), new Map()).values()]',
-          'console.log(uniqueById) // 根据 id 去重',
-          '```',
-          '',
-          '5) 临时对象/Set 记录（适合基本类型）',
-          '',
-          '```javascript',
-          'const seen = new Set()',
-          'const unique = []',
-          'for (const v of original) {',
-          '  if (!seen.has(v)) { seen.add(v); unique.push(v) }',
-          '}',
-          '```',
-          '',
-          '三、特殊场景',
-          '',
-          '6) 对象深度值去重（以 JSON 字符串为键，简便但有序列化开销）',
-          '',
-          '```javascript',
-          'const arr = [{a:1},{a:1},{a:2}]',
-          'const uniqueDeep = Array.from(new Map(arr.map(x => [JSON.stringify(x), x])).values())',
-          '```',
-          '',
-          '7) 先排序再去重（适合大数据但需要排序）',
-          '',
-          '```javascript',
-          'const sorted = [...original].sort()',
-          'const uniqueSorted = sorted.filter((v, i) => i === 0 || v !== sorted[i-1])',
-          '```',
-          '',
-          '选择建议：',
-          '- 基本类型：优先 Set',
-          '- 对象数组按键：Map/对象字典',
-          '- 深比较：JSON 序列化或第三方库（如 lodash uniqWith）',
-          '',
-          '希望对你有帮助！如果需要性能对比或适配更复杂数据结构，我可以继续完善示例。',
-        ].join('\n')
-        messageType = 'text'
-      } else if (settingsStore.settings.enableArtifacts && Math.random() > 0.5) {
-        aiContent = JSON.stringify(
-          {
-            name: '示例项目',
-            version: '1.0.0',
-            description: '这是一个示例JSON响应',
-            features: ['功能1', '功能2', '功能3'],
-            config: {
-              enabled: true,
-              timeout: 3000,
-              retries: 3,
-            },
-          },
-          null,
-          2
-        )
-        messageType = 'code'
-      }
-
-      const aiLocale =
-        settingsStore.settings.language === 'zh'
-          ? 'zh-CN'
-          : settingsStore.settings.language === 'ko'
-            ? 'ko-KR'
-            : 'en-US'
-
-      // DeepSeek风格：格式化AI回复内容
-      const deepSeekFormattedContent = formatForDeepSeek(aiContent)
-
-      // DeepSeek风格：消息对象添加模型标识
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: '', // 初始内容为空，后续通过流式填充
-        type: messageType,
-        timestamp: new Date().toLocaleString(aiLocale),
-        sender: 'assistant',
-        model: 'deepseek-chat', // DeepSeek风格：添加模型标识
-      }
-      chatStore.addMessage(chatStore.currentConversationId, aiMessage)
-
-      // DeepSeek风格：模拟更自然的流式回复
-      simulateStreamingResponse(aiMessage.id, deepSeekFormattedContent, 8) // 略快的基础延迟，更符合DeepSeek体验
-    }, 800)
-  }
-
   const addNewLine = () => {
     inputMessage.value += '\n'
   }
@@ -919,11 +280,224 @@
     chatStore.createNewConversation()
   }
 
-  onMounted(() => {
-    nextTick(() => hljs.highlightAll())
-    if (!currentConversation.value?.messages.length) {
-      inputMessage.value = 'js数组去重方法有哪些'
-      sendMessage()
+  const sendMessage = async () => {
+    if (!inputMessage.value.trim()) return
+
+    const message: Message = {
+      id: Date.now().toString(),
+      content: inputMessage.value,
+      type: 'text',
+      timestamp: new Date().toLocaleString(
+        settingsStore.settings.language === 'zh' ? 'zh-CN' : 'en-US'
+      ),
+      sender: 'user',
+      model: settingsStore.settings.model,
     }
+
+    chatStore.addMessage(chatStore.currentConversationId, message)
+    inputMessage.value = ''
+
+    try {
+      const currentConversation = chatStore.currentConversation
+      if (!currentConversation) return
+
+      const aiMessageId = (Date.now() + 1).toString()
+      const aiMessage: Message = {
+        id: aiMessageId,
+        content: '',
+        type: 'text',
+        timestamp: new Date().toLocaleString(
+          settingsStore.settings.language === 'zh' ? 'zh-CN' : 'en-US'
+        ),
+        sender: 'assistant',
+        model: settingsStore.settings.model,
+      }
+
+      chatStore.addMessage(chatStore.currentConversationId, aiMessage)
+      typingMessages.value.add(aiMessageId)
+
+      let fullContent = ''
+
+      await apiStore.sendStreamingMessage(
+        currentConversation.messages,
+        settingsStore.settings.model,
+        {
+          temperature: settingsStore.settings.temperature,
+          presencePenalty: settingsStore.settings.presencePenalty || 0,
+          frequencyPenalty: settingsStore.settings.frequencyPenalty || 0,
+          topP: settingsStore.settings.topP,
+        },
+        (chunk: string) => {
+          fullContent += chunk
+
+          const messageIndex = currentConversation.messages.findIndex(
+            (msg) => msg.id === aiMessageId
+          )
+          if (messageIndex !== -1) {
+            currentConversation.messages[messageIndex].content = fullContent
+          }
+        }
+      )
+
+      typingMessages.value.delete(aiMessageId)
+
+      // 滚动到底部
+      scrollToBottom()
+    } catch (error) {
+      console.error('发送消息失败:', error)
+      ElMessage.error('发送消息失败，请稍后重试')
+
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: `错误: ${error instanceof Error ? error.message : '未知错误'}`,
+        type: 'text',
+        timestamp: new Date().toLocaleString(
+          settingsStore.settings.language === 'zh' ? 'zh-CN' : 'en-US'
+        ),
+        sender: 'assistant',
+      }
+      chatStore.addMessage(chatStore.currentConversationId, errorMessage)
+    }
+  }
+
+  const copyMessage = async (message: Message) => {
+    try {
+      await navigator.clipboard.writeText(message.content)
+      ElMessage.success('消息已复制到剪贴板')
+    } catch (error) {
+      console.error('复制失败:', error)
+      ElMessage.error('复制失败，请手动复制')
+    }
+  }
+
+  const deleteMessage = (messageId: string) => {
+    if (confirm('确定要删除这条消息吗？')) {
+      const conversation = currentConversation.value
+      if (conversation) {
+        const messageIndex = conversation.messages.findIndex((msg) => msg.id === messageId)
+        if (messageIndex !== -1) {
+          conversation.messages.splice(messageIndex, 1)
+
+          if (conversation.messages.length > 0) {
+            const lastMessage = conversation.messages[conversation.messages.length - 1]
+            conversation.lastMessage =
+              lastMessage.content.substring(0, 50) + (lastMessage.content.length > 50 ? '...' : '')
+          } else {
+            conversation.lastMessage = ''
+          }
+
+          localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
+          ElMessage.success('消息已删除')
+        }
+      }
+    }
+  }
+
+  const retryMessage = async (message: Message) => {
+    if (message.sender !== 'assistant') {
+      ElMessage.warning('只能重试AI回复的消息')
+      return
+    }
+
+    const conversation = currentConversation.value
+    if (!conversation) return
+
+    const messageIndex = conversation.messages.findIndex((msg) => msg.id === message.id)
+    if (messageIndex <= 0) {
+      ElMessage.warning('没有找到对应的用户消息')
+      return
+    }
+
+    const userMessage = conversation.messages[messageIndex - 1]
+    if (userMessage.sender !== 'user') {
+      ElMessage.warning('消息顺序错误')
+      return
+    }
+
+    try {
+      ElMessage.info('正在重试生成回复...')
+
+      conversation.messages.splice(messageIndex, 1)
+
+      const newAiMessageId = Date.now().toString()
+      const newAiMessage: Message = {
+        id: newAiMessageId,
+        content: '',
+        type: 'text',
+        timestamp: new Date().toLocaleString(
+          settingsStore.settings.language === 'zh' ? 'zh-CN' : 'en-US'
+        ),
+        sender: 'assistant',
+        model: settingsStore.settings.model,
+      }
+
+      conversation.messages.splice(messageIndex, 0, newAiMessage)
+      typingMessages.value.add(newAiMessageId)
+
+      let fullContent = ''
+
+      await apiStore.sendStreamingMessage(
+        conversation.messages,
+        settingsStore.settings.model,
+        {
+          temperature: settingsStore.settings.temperature,
+          presencePenalty: settingsStore.settings.presencePenalty || 0,
+          frequencyPenalty: settingsStore.settings.frequencyPenalty || 0,
+          topP: settingsStore.settings.topP,
+        },
+        (chunk: string) => {
+          fullContent += chunk
+
+          const msgIndex = conversation.messages.findIndex((msg) => msg.id === newAiMessageId)
+          if (msgIndex !== -1) {
+            conversation.messages[msgIndex].content = fullContent
+          }
+        }
+      )
+
+      typingMessages.value.delete(newAiMessageId)
+
+      if (conversation.messages.length > 0) {
+        const lastMsg = conversation.messages[conversation.messages.length - 1]
+        conversation.lastMessage =
+          lastMsg.content.slice(0, 50) + (lastMsg.content.length > 50 ? '...' : '')
+        conversation.timestamp = new Date().toLocaleString('zh-CN')
+      }
+
+      localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
+      ElMessage.success('重试成功')
+
+      // 滚动到底部
+      scrollToBottom()
+    } catch (error) {
+      console.error('重试失败:', error)
+      ElMessage.error('重试失败，请稍后重试')
+    }
+  }
+
+  const scrollToBottom = () => {
+    nextTick(() => {
+      if (messagesContainer.value) {
+        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+      }
+    })
+  }
+
+  // 监听消息变化，自动滚动到底部
+  const unwatch = computed(() => {
+    return currentConversation.value?.messages.length
+  })
+
+  // 初始化 marked
+  onMounted(() => {
+    // 配置 marked
+    marked.setOptions({
+      highlight: function (code, lang) {
+        const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+        return hljs.highlight(code, { language }).value
+      },
+      breaks: true,
+      gfm: true,
+    })
   })
 </script>
