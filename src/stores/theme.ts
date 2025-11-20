@@ -19,7 +19,7 @@ export const useThemeStore = defineStore('theme', () => {
   const applyTheme = (newTheme: Theme) => {
     theme.value = newTheme
     const html = document.documentElement
-    
+
     if (actualTheme.value === 'dark') {
       html.classList.add('dark')
       html.setAttribute('data-theme', 'dark')
@@ -34,7 +34,7 @@ export const useThemeStore = defineStore('theme', () => {
   // 监听系统主题变化
   const setupSystemThemeListener = () => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       if (theme.value === 'auto') {
         applyTheme('auto')
@@ -42,7 +42,7 @@ export const useThemeStore = defineStore('theme', () => {
     }
 
     mediaQuery.addEventListener('change', handleChange)
-    
+
     return () => {
       mediaQuery.removeEventListener('change', handleChange)
     }
@@ -78,6 +78,6 @@ export const useThemeStore = defineStore('theme', () => {
     actualTheme,
     initTheme,
     setTheme,
-    toggleTheme
+    toggleTheme,
   }
 })

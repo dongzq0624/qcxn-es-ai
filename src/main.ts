@@ -45,7 +45,7 @@ watchEffect(() => {
   if (settingsStore.settings.theme !== themeStore.theme) {
     themeStore.setTheme(settingsStore.settings.theme)
   }
-  
+
   // 语言设置
   if (i18n.global.locale.value !== settingsStore.settings.language) {
     i18n.global.locale.value = settingsStore.settings.language

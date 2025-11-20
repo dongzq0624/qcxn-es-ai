@@ -24,6 +24,6 @@ export function useViewAll() {
     viewAllTitle,
     openViewAll,
     closeViewAll,
-    toggleViewAll
+    toggleViewAll,
   }
 }

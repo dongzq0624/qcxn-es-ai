@@ -14,6 +14,10 @@ module.exports = {
     'media-feature-range-notation': null,
     'no-duplicate-selectors': null,
     'selector-pseudo-class-no-unknown': null,
-    'at-rule-no-unknown': [true, { ignoreAtRules: ['tailwind', 'apply', 'variants', 'responsive', 'screen'] }],
+    'at-rule-no-unknown': [
+      true,
+      { ignoreAtRules: ['tailwind', 'apply', 'variants', 'responsive', 'screen'] },
+    ],
+    'rule-empty-line-before': null,
   },
 }

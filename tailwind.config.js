@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 
 export default {
-  darkMode: "class",
-  content: ["./index.html", "./src/**/*.{js,ts,vue}"],
+  darkMode: 'class',
+  content: ['./index.html', './src/**/*.{js,ts,vue}'],
   theme: {
     container: {
       center: true,
@@ -10,4 +10,4 @@ export default {
     extend: {},
   },
   plugins: [],
-};
+}

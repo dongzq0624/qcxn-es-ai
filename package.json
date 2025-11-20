@@ -14,7 +14,9 @@
     "stylelint:fix": "stylelint \"src/**/*.{css,scss,vue}\" --fix",
     "prepare": "husky",
     "commitlint": "commitlint --from=HEAD~1 --to=HEAD",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
@@ -42,12 +44,17 @@
     "@vue/tsconfig": "^0.7.0",
     "autoprefixer": "^10.4.17",
     "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-vue": "^9.20.1",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
     "postcss": "^8.4.35",
     "postcss-html": "^1.8.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.5.14",
     "stylelint": "^16.25.0",
+    "stylelint-config-prettier": "^9.0.5",
     "stylelint-config-recommended-vue": "^1.6.1",
     "stylelint-config-standard": "^36.0.1",
     "tailwindcss": "^3.4.1",

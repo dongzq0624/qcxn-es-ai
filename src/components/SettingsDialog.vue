@@ -10,19 +10,15 @@
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-lg font-semibold text-gray-800">{{ $t('settings.title') }}</h3>
-          <p class="text-sm text-gray-600 mt-1">{{ $t('settings.subtitle') }}</p>
+          <p class="mt-1 text-sm text-gray-600">{{ $t('settings.subtitle') }}</p>
         </div>
-        <el-button 
-          type="text" 
-          @click="handleClose"
-          class="text-gray-400 hover:text-gray-600"
-        >
+        <el-button type="text" @click="handleClose" class="text-gray-400 hover:text-gray-600">
           <el-icon size="20"><Close /></el-icon>
         </el-button>
       </div>
     </template>
 
-    <div class="max-h-96 overflow-y-auto space-y-6">
+    <div class="max-h-96 space-y-6 overflow-y-auto">
       <!-- 头像设置 -->
       <div class="flex items-center justify-between">
         <div>
@@ -75,22 +71,23 @@
         <el-select v-model="settingsStore.settings.language" style="width: 120px">
           <el-option value="zh" label="简体中文" />
           <el-option value="en" label="English" />
+          <el-option value="ko" label="한국어" />
         </el-select>
       </div>
 
       <!-- 字体大小 -->
       <div>
-        <div class="flex items-center justify-between mb-2">
+        <div class="mb-2 flex items-center justify-between">
           <div>
             <h4 class="font-medium text-gray-800">{{ $t('settings.fontSize') }}</h4>
             <p class="text-sm text-gray-600">{{ $t('settings.fontSizeDesc') }}</p>
           </div>
           <span class="text-sm text-gray-600">{{ settingsStore.settings.fontSize }}px</span>
         </div>
-        <el-slider 
-          v-model="settingsStore.settings.fontSize" 
-          :min="12" 
-          :max="20" 
+        <el-slider
+          v-model="settingsStore.settings.fontSize"
+          :min="12"
+          :max="20"
           :step="1"
           show-stops
         />
@@ -174,36 +171,26 @@
 
       <!-- 随机性 -->
       <div>
-        <div class="flex items-center justify-between mb-2">
+        <div class="mb-2 flex items-center justify-between">
           <div>
             <h4 class="font-medium text-gray-800">{{ $t('settings.temperature') }}</h4>
             <p class="text-sm text-gray-600">{{ $t('settings.temperatureDesc') }}</p>
           </div>
           <span class="text-sm text-gray-600">{{ settingsStore.settings.temperature }}</span>
         </div>
-        <el-slider 
-          v-model="settingsStore.settings.temperature" 
-          :min="0" 
-          :max="2" 
-          :step="0.1"
-        />
+        <el-slider v-model="settingsStore.settings.temperature" :min="0" :max="2" :step="0.1" />
       </div>
 
       <!-- 核采样 -->
       <div>
-        <div class="flex items-center justify-between mb-2">
+        <div class="mb-2 flex items-center justify-between">
           <div>
             <h4 class="font-medium text-gray-800">{{ $t('settings.topP') }}</h4>
             <p class="text-sm text-gray-600">{{ $t('settings.topPDesc') }}</p>
           </div>
           <span class="text-sm text-gray-600">{{ settingsStore.settings.topP }}</span>
         </div>
-        <el-slider 
-          v-model="settingsStore.settings.topP" 
-          :min="0" 
-          :max="1" 
-          :step="0.1"
-        />
+        <el-slider v-model="settingsStore.settings.topP" :min="0" :max="1" :step="0.1" />
       </div>
 
       <!-- 最大Token数 -->
@@ -212,10 +199,10 @@
           <h4 class="font-medium text-gray-800">{{ $t('settings.maxTokens') }}</h4>
           <p class="text-sm text-gray-600">{{ $t('settings.maxTokensDesc') }}</p>
         </div>
-        <el-input-number 
-          v-model="settingsStore.settings.maxTokens" 
-          :min="1" 
-          :max="8192" 
+        <el-input-number
+          v-model="settingsStore.settings.maxTokens"
+          :min="1"
+          :max="8192"
           :step="100"
           style="width: 120px"
         />
@@ -257,100 +244,99 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Close } from '@element-plus/icons-vue'
-import { useSettingsStore } from '@/stores/settings'
-import { useChatStore } from '@/stores/chat'
-import { useI18n } from 'vue-i18n'
+  import { ref, watch } from 'vue'
+  import { ElMessage, ElMessageBox } from 'element-plus'
+  import { Close } from '@element-plus/icons-vue'
+  import { useSettingsStore } from '@/stores/settings'
+  import { useChatStore } from '@/stores/chat'
+  import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
-  modelValue: boolean
-}>()
+  const props = defineProps<{
+    modelValue: boolean
+  }>()
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-}>()
+  const emit = defineEmits<{
+    'update:modelValue': [value: boolean]
+  }>()
 
-const { t } = useI18n()
-const settingsStore = useSettingsStore()
-const chatStore = useChatStore()
+  const { t } = useI18n()
+  const settingsStore = useSettingsStore()
+  const chatStore = useChatStore()
 
-const visible = ref(props.modelValue)
+  const visible = ref(props.modelValue)
 
-watch(() => props.modelValue, (val) => {
-  visible.value = val
-})
+  watch(
+    () => props.modelValue,
+    (val) => {
+      visible.value = val
+    }
+  )
 
-watch(visible, (val) => {
-  emit('update:modelValue', val)
-})
+  watch(visible, (val) => {
+    emit('update:modelValue', val)
+  })
 
-const handleClose = () => {
-  visible.value = false
-}
-
-const saveSettings = () => {
-  settingsStore.saveSettings()
-  ElMessage.success(t('common.save') + t('common.success'))
-  handleClose()
-}
-
-const selectAvatar = () => {
-  const avatars = ['😊', '😎', '🤔', '😄', '🥳', '🤖', '👨‍💻', '👩‍💻']
-  const currentIndex = avatars.indexOf(settingsStore.settings.avatar)
-  const nextIndex = (currentIndex + 1) % avatars.length
-  settingsStore.settings.avatar = avatars[nextIndex]
-}
-
-const checkUpdate = () => {
-  ElMessage.success('当前已是最新版本')
-}
-
-const resetSettings = async () => {
-  try {
-    await ElMessageBox.confirm(
-      '确定要重置所有设置吗？此操作不可恢复。',
-      '警告',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    settingsStore.resetSettings()
-    ElMessage.success('设置已重置')
-  } catch (error) {
-    // 用户取消
+  const handleClose = () => {
+    visible.value = false
   }
-}
 
-const clearAllData = async () => {
-  try {
-    await ElMessageBox.confirm(
-      '确定要清除所有数据吗？此操作将删除所有聊天记录和设置。',
-      '危险操作',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'error'
-      }
-    )
-    
-    // 清除聊天记录
-    chatStore.conversations = []
-    chatStore.currentConversationId = ''
-    
-    // 重置设置
-    settingsStore.resetSettings()
-    
-    // 清除本地存储
-    localStorage.clear()
-    
-    ElMessage.success('所有数据已清除')
+  const saveSettings = () => {
+    settingsStore.saveSettings()
+    ElMessage.success(t('common.save') + t('common.success'))
     handleClose()
-  } catch (error) {
-    // 用户取消
   }
-}
+
+  const selectAvatar = () => {
+    const avatars = ['😊', '😎', '🤔', '😄', '🥳', '🤖', '👨‍💻', '👩‍💻']
+    const currentIndex = avatars.indexOf(settingsStore.settings.avatar)
+    const nextIndex = (currentIndex + 1) % avatars.length
+    settingsStore.settings.avatar = avatars[nextIndex]
+  }
+
+  const checkUpdate = () => {
+    ElMessage.success('当前已是最新版本')
+  }
+
+  const resetSettings = async () => {
+    try {
+      await ElMessageBox.confirm('确定要重置所有设置吗？此操作不可恢复。', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      })
+      settingsStore.resetSettings()
+      ElMessage.success('设置已重置')
+    } catch (error) {
+      // 用户取消
+    }
+  }
+
+  const clearAllData = async () => {
+    try {
+      await ElMessageBox.confirm(
+        '确定要清除所有数据吗？此操作将删除所有聊天记录和设置。',
+        '危险操作',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'error',
+        }
+      )
+
+      // 清除聊天记录
+      chatStore.conversations = []
+      chatStore.currentConversationId = ''
+
+      // 重置设置
+      settingsStore.resetSettings()
+
+      // 清除本地存储
+      localStorage.clear()
+
+      ElMessage.success('所有数据已清除')
+      handleClose()
+    } catch (error) {
+      // 用户取消
+    }
+  }
 </script>

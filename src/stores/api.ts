@@ -38,27 +38,32 @@ export const useApiStore = defineStore('api', () => {
   // API 配置
   const DEEPSEEK_API_KEY = 'sk-f3e2a86d8eb34f519eabe9fa84435024'
   const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions'
-  
+
   const OPENAI_API_KEY = 'sk-BvUtwVQbhN6rb1mPuVrKtcE1UfKm33a0vT6QgZuVNuthsDLu'
   const OPENAI_API_BASE_URL = 'https://sg.uiuiapi.com/v1'
   const OPENAI_API_URL = `${OPENAI_API_BASE_URL}/chat/completions`
 
-  const sendMessage = async (messages: Message[], model: string, settings: any): Promise<string> => {
+  const sendMessage = async (
+    messages: Message[],
+    model: string,
+    settings: any
+  ): Promise<string> => {
     isLoading.value = true
     error.value = null
 
     try {
       // 构建请求消息
-      const requestMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = messages.map(msg => ({
-        role: msg.sender === 'system' ? 'system' : msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      }))
+      const requestMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> =
+        messages.map((msg) => ({
+          role: msg.sender === 'system' ? 'system' : msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.content,
+        }))
 
       // 如果没有系统消息，添加默认的系统消息（根据模型不同而不同）
-      const hasSystemMessage = requestMessages.some(msg => msg.role === 'system')
+      const hasSystemMessage = requestMessages.some((msg) => msg.role === 'system')
       if (!hasSystemMessage) {
         let systemContent = ''
-        
+
         if (model === 'gpt-3.5-turbo' || model === 'gpt-4') {
           // ChatGPT 模型的系统消息
           systemContent = `You are ChatGPT, a large language model trained by OpenAI.
@@ -86,10 +91,10 @@ Current time: ${new Date().toString()}
 
 `
         }
-        
+
         const systemMessage = {
           role: 'system' as const,
-          content: systemContent
+          content: systemContent,
         }
         requestMessages.unshift(systemMessage)
       }
@@ -97,7 +102,7 @@ Current time: ${new Date().toString()}
       let actualModel = model
       let apiUrl = ''
       let apiKey = ''
-      
+
       // 根据模型选择对应的API配置
       if (model === 'deepseek') {
         actualModel = 'deepseek-chat'
@@ -112,7 +117,7 @@ Current time: ${new Date().toString()}
         apiUrl = DEEPSEEK_API_URL
         apiKey = DEEPSEEK_API_KEY
       }
-      
+
       console.log('Using model:', actualModel)
       console.log('API URL:', apiUrl)
       console.log('Request messages:', requestMessages)
@@ -124,7 +129,7 @@ Current time: ${new Date().toString()}
         temperature: settings.temperature || 0.5,
         presence_penalty: settings.presencePenalty || 0,
         frequency_penalty: settings.frequencyPenalty || 0,
-        top_p: settings.topP || 1
+        top_p: settings.topP || 1,
       }
 
       console.log('Request body:', JSON.stringify(requestBody, null, 2))
@@ -133,9 +138,9 @@ Current time: ${new Date().toString()}
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
       })
 
       console.log('Response status:', response.status)
@@ -197,8 +202,8 @@ Current time: ${new Date().toString()}
   }
 
   const sendStreamingMessage = async (
-    messages: Message[], 
-    model: string, 
+    messages: Message[],
+    model: string,
     settings: any,
     onChunk: (chunk: string) => void
   ): Promise<void> => {
@@ -207,16 +212,17 @@ Current time: ${new Date().toString()}
 
     try {
       // 构建请求消息
-      const requestMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = messages.map(msg => ({
-        role: msg.sender === 'system' ? 'system' : msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      }))
+      const requestMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> =
+        messages.map((msg) => ({
+          role: msg.sender === 'system' ? 'system' : msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.content,
+        }))
 
       // 如果没有系统消息，添加默认的系统消息（根据模型不同而不同）
-      const hasSystemMessage = requestMessages.some(msg => msg.role === 'system')
+      const hasSystemMessage = requestMessages.some((msg) => msg.role === 'system')
       if (!hasSystemMessage) {
         let systemContent = ''
-        
+
         if (model === 'gpt-3.5-turbo' || model === 'gpt-4') {
           // ChatGPT 模型的系统消息
           systemContent = `You are ChatGPT, a large language model trained by OpenAI.
@@ -244,10 +250,10 @@ Current time: ${new Date().toString()}
 
 `
         }
-        
+
         const systemMessage = {
           role: 'system' as const,
-          content: systemContent
+          content: systemContent,
         }
         requestMessages.unshift(systemMessage)
       }
@@ -255,7 +261,7 @@ Current time: ${new Date().toString()}
       let actualModel = model
       let apiUrl = ''
       let apiKey = ''
-      
+
       // 根据模型选择对应的API配置
       if (model === 'deepseek') {
         actualModel = 'deepseek-chat'
@@ -270,7 +276,7 @@ Current time: ${new Date().toString()}
         apiUrl = DEEPSEEK_API_URL
         apiKey = DEEPSEEK_API_KEY
       }
-      
+
       console.log('Using model:', actualModel)
       console.log('API URL:', apiUrl)
       console.log('Request messages:', requestMessages)
@@ -282,7 +288,7 @@ Current time: ${new Date().toString()}
         temperature: settings.temperature || 0.5,
         presence_penalty: settings.presencePenalty || 0,
         frequency_penalty: settings.frequencyPenalty || 0,
-        top_p: settings.topP || 1
+        top_p: settings.topP || 1,
       }
 
       console.log('Request body:', JSON.stringify(requestBody, null, 2))
@@ -291,9 +297,9 @@ Current time: ${new Date().toString()}
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
       })
 
       console.log('Response status:', response.status)
@@ -355,6 +361,6 @@ Current time: ${new Date().toString()}
     isLoading,
     error,
     sendMessage,
-    sendStreamingMessage
+    sendStreamingMessage,
   }
 })

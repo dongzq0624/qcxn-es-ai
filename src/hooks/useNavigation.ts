@@ -29,7 +29,7 @@ export function useNavigation() {
   const startMaskedChat = (maskId: string) => {
     const { getMaskById } = useMasks()
     const mask = getMaskById(maskId)
-    
+
     if (mask) {
       // 创建带面具的对话
       chatStore.createMaskedConversation(mask.name, mask.description, mask.prompt)
@@ -49,6 +49,6 @@ export function useNavigation() {
     navigateToMasks,
     startNewChat,
     startMaskedChat,
-    selectConversation
+    selectConversation,
   }
 }

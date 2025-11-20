@@ -1,0 +1,10 @@
+node_modules
+dist
+.cache
+.vscode
+.idea
+coverage
+*.log
+pnpm-lock.yaml
+*.svg
+public
