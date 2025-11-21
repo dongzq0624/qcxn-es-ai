@@ -64,14 +64,12 @@ export const useApiStore = defineStore('api', () => {
             content: msg.content,
           }))
 
-      // 如果没有系统消息，添加默认的系统消息（根据模型不同而不同）
-      const hasSystemMessage = requestMessages.some((msg) => msg.role === 'system')
-      if (!hasSystemMessage) {
-        let systemContent = ''
+      // 总是使用对应模型的系统消息，替换已有的系统消息（如果有）
+      let systemContent = ''
 
-        if (model === 'gpt-3.5-turbo' || model === 'gpt-4') {
-          // ChatGPT 模型的系统消息
-          systemContent = `You are ChatGPT, a large language model trained by OpenAI.
+      if (model === 'gpt-3.5-turbo' || model === 'gpt-4') {
+        // ChatGPT 模型的系统消息
+        systemContent = `You are ChatGPT, a large language model trained by OpenAI.
 Knowledge cutoff: 2021-09
 Current model: ${model}
 Current time: ${new Date().toString()}
@@ -79,28 +77,36 @@ Latex inline: \\(x^2\\)
 Latex block: $$e=mc^2$$
 
 `
-        } else if (model === 'deepseek') {
-          // DeepSeek 模型的系统消息 - 仿照OpenAI格式
-          systemContent = `You are DeepSeek, a large language model trained by DeepSeek.
+      } else if (model === 'deepseek') {
+        // DeepSeek 模型的系统消息
+        systemContent = `You are DeepSeek, a large language model trained by DeepSeek.
 Current model: ${model}
 Current time: ${new Date().toString()}
 Latex inline: \\(x^2\\) 
 Latex block: $$e=mc^2$$
 
 `
-        } else {
-          // 默认系统消息
-          systemContent = `You are a helpful AI assistant.
+      } else {
+        // 默认系统消息
+        systemContent = `You are a helpful AI assistant.
 Current model: ${model}
 Current time: ${new Date().toString()}
 
 `
-        }
+      }
 
-        const systemMessage = {
-          role: 'system' as const,
-          content: systemContent,
-        }
+      const systemMessage = {
+        role: 'system' as const,
+        content: systemContent,
+      }
+
+      // 检查是否已有系统消息
+      const systemMessageIndex = requestMessages.findIndex((msg) => msg.role === 'system')
+      if (systemMessageIndex !== -1) {
+        // 替换已有的系统消息
+        requestMessages[systemMessageIndex] = systemMessage
+      } else {
+        // 添加新的系统消息
         requestMessages.unshift(systemMessage)
       }
 
@@ -229,14 +235,12 @@ Current time: ${new Date().toString()}
             content: msg.content,
           }))
 
-      // 如果没有系统消息，添加默认的系统消息（根据模型不同而不同）
-      const hasSystemMessage = requestMessages.some((msg) => msg.role === 'system')
-      if (!hasSystemMessage) {
-        let systemContent = ''
+      // 总是使用对应模型的系统消息，替换已有的系统消息（如果有）
+      let systemContent = ''
 
-        if (model === 'gpt-3.5-turbo' || model === 'gpt-4') {
-          // ChatGPT 模型的系统消息
-          systemContent = `You are ChatGPT, a large language model trained by OpenAI.
+      if (model === 'gpt-3.5-turbo' || model === 'gpt-4') {
+        // ChatGPT 模型的系统消息
+        systemContent = `You are ChatGPT, a large language model trained by OpenAI.
 Knowledge cutoff: 2021-09
 Current model: ${model}
 Current time: ${new Date().toString()}
@@ -244,28 +248,36 @@ Latex inline: \\(x^2\\)
 Latex block: $$e=mc^2$$
 
 `
-        } else if (model === 'deepseek') {
-          // DeepSeek 模型的系统消息 - 仿照OpenAI格式
-          systemContent = `You are DeepSeek, a large language model trained by DeepSeek.
+      } else if (model === 'deepseek') {
+        // DeepSeek 模型的系统消息
+        systemContent = `You are DeepSeek, a large language model trained by DeepSeek.
 Current model: ${model}
 Current time: ${new Date().toString()}
 Latex inline: \\(x^2\\) 
 Latex block: $$e=mc^2$$
 
 `
-        } else {
-          // 默认系统消息
-          systemContent = `You are a helpful AI assistant.
+      } else {
+        // 默认系统消息
+        systemContent = `You are a helpful AI assistant.
 Current model: ${model}
 Current time: ${new Date().toString()}
 
 `
-        }
+      }
 
-        const systemMessage = {
-          role: 'system' as const,
-          content: systemContent,
-        }
+      const systemMessage = {
+        role: 'system' as const,
+        content: systemContent,
+      }
+
+      // 检查是否已有系统消息
+      const systemMessageIndex = requestMessages.findIndex((msg) => msg.role === 'system')
+      if (systemMessageIndex !== -1) {
+        // 替换已有的系统消息
+        requestMessages[systemMessageIndex] = systemMessage
+      } else {
+        // 添加新的系统消息
         requestMessages.unshift(systemMessage)
       }
 
