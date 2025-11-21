@@ -154,15 +154,6 @@ export const useChatStore = defineStore('chat', () => {
     conversations.value.unshift(newConversation)
     currentConversationId.value = newConversation.id
 
-    // 添加系统消息作为面具提示
-    const systemMessage: Message = {
-      id: Date.now().toString(),
-      content: maskPrompt,
-      type: 'text',
-      timestamp: new Date().toLocaleString(),
-      sender: 'system',
-    }
-
     // 添加欢迎消息
     const welcomeMessage: Message = {
       id: (Date.now() + 1).toString(),
@@ -172,7 +163,6 @@ export const useChatStore = defineStore('chat', () => {
       sender: 'assistant',
     }
 
-    addMessage(newConversation.id, systemMessage)
     addMessage(newConversation.id, welcomeMessage)
 
     // 保存到localStorage

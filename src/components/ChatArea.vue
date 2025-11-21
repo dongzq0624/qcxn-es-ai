@@ -18,7 +18,7 @@
         </div>
 
         <div
-          v-for="message in currentConversation?.messages"
+          v-for="message in currentConversation?.messages.filter((msg) => msg.sender !== 'system')"
           :key="message.id"
           class="message-item relative flex flex-col gap-4"
         >
