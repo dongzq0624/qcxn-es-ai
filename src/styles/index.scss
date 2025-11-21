@@ -1,0 +1,12 @@
+/* AI代码块圆角样式 */
+.code-block-wrapper {
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+/* 响应式设备上的代码块圆角 */
+@media (max-width: 768px) {
+  .code-block-wrapper {
+    border-radius: 8px !important;
+  }
+}

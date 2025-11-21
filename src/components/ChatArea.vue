@@ -80,10 +80,11 @@
               <div v-else-if="message.type === 'code'" class="message-content group relative">
                 <!-- 代码块容器 -->
                 <div
-                  class="code-block-container overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800"
+                  class="code-block-container overflow-hidden bg-gray-50 dark:bg-gray-800"
                   :style="{
                     fontSize: settingsStore.settings.fontSize + 'px',
                     fontFamily: settingsStore.settings.chatFont,
+                    borderRadius: '8px',
                   }"
                 >
                   <!-- 代码块头部信息栏 -->
@@ -339,8 +340,8 @@
           }
         }
 
-        return `<div class="code-block-wrapper relative mobile-scrollable">
-          <div class="code-header flex justify-between items-center p-2 bg-gray-800 text-xs text-gray-400">
+        return `<div class="code-block-wrapper relative mobile-scrollable rounded-lg overflow-hidden">
+          <div class="code-header flex justify-between items-center p-2 bg-gray-800 text-xs text-gray-400 rounded-t-lg">
             <span class="language-label">${language}</span>
             <button class="copy-button rounded bg-gray-700 p-1 text-gray-300 hover:bg-gray-600" onclick="copyCode(this)" title="复制代码">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy">
@@ -349,7 +350,7 @@
               </svg>
             </button>
           </div>
-          <pre><code class="${languageClass}">${codeContent}</code></pre>
+          <pre class="rounded-b-lg"><code class="${languageClass}">${codeContent}</code></pre>
         </div>`
       }
     )
@@ -767,7 +768,6 @@
   /* 确保消息内容中的文本自动换行 */
   :deep(p),
   :deep(div:not(.code-block-wrapper, .table-container, .mobile-scrollable)) {
-    overflow-wrap: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
   }
