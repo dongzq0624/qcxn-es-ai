@@ -157,7 +157,7 @@ export const useChatStore = defineStore('chat', () => {
     // 添加欢迎消息
     const welcomeMessage: Message = {
       id: (Date.now() + 1).toString(),
-      content: `你好！我是${maskName}，${maskDescription}。有什么可以帮助你的吗？`,
+      content: `您好！很高兴为您服务。${maskPrompt}`,
       type: 'text',
       timestamp: new Date().toLocaleString(),
       sender: 'assistant',
