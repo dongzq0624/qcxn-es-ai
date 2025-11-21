@@ -1,7 +1,7 @@
 <template>
   <div class="flex min-h-0 flex-1 flex-col bg-gray-50 dark:bg-gray-900">
     <!-- 消息显示区域 - 使用flex-1和min-h-0确保内容溢出时能正确滚动 -->
-    <div ref="messagesContainer" class="min-h-0 flex-1 overflow-y-auto p-6">
+    <div ref="messagesContainer" class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
       <div class="mx-auto max-w-3xl space-y-8">
         <div v-if="!currentConversation?.messages.length" class="mt-16 text-center text-gray-500">
           <div class="mx-auto max-w-md">
@@ -80,7 +80,7 @@
               <div v-else-if="message.type === 'code'" class="message-content group relative">
                 <!-- 代码块容器 -->
                 <div
-                  class="overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800"
+                  class="code-block-container overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800"
                   :style="{
                     fontSize: settingsStore.settings.fontSize + 'px',
                     fontFamily: settingsStore.settings.chatFont,
@@ -117,8 +117,11 @@
                   </div>
 
                   <!-- 代码内容 -->
-                  <div class="max-w-none overflow-x-auto p-4 text-sm">
-                    <div v-html="formatMessage(message.content)"></div>
+                  <div class="max-w-none overflow-x-auto whitespace-pre p-4 text-sm">
+                    <div
+                      class="whitespace-pre break-words"
+                      v-html="formatMessage(message.content)"
+                    ></div>
                   </div>
                 </div>
 
@@ -310,6 +313,14 @@
     })
 
     // 在代码块右上角添加复制按钮，并在左上角显示代码类型
+    // 为表格添加水平滚动容器
+    parsedContent = parsedContent.replace(/<table>([\s\S]*?)<\/table>/g, (match, tableContent) => {
+      return `<div class="table-container mobile-scrollable">
+          <table>${tableContent}</table>
+        </div>`
+    })
+
+    // 处理代码块
     parsedContent = parsedContent.replace(
       /<pre><code class="([^"]*)">([\s\S]*?)<\/code><\/pre>/g,
       (match, languageClass, codeContent) => {
@@ -328,7 +339,7 @@
           }
         }
 
-        return `<div class="code-block-wrapper relative">
+        return `<div class="code-block-wrapper relative mobile-scrollable">
           <div class="code-header flex justify-between items-center p-2 bg-gray-800 text-xs text-gray-400">
             <span class="language-label">${language}</span>
             <button class="copy-button rounded bg-gray-700 p-1 text-gray-300 hover:bg-gray-600" onclick="copyCode(this)" title="复制代码">
@@ -701,7 +712,7 @@
 <style scoped>
   /* 代码块包装器样式 */
   .code-block-wrapper {
-    border-radius: 6px;
+    border-radius: 8px;
     overflow: hidden;
     margin: 1em 0;
   }
@@ -713,8 +724,8 @@
     align-items: center;
     padding: 0.5em 1em;
     background-color: #1f2937; /* 深色背景 */
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
   }
 
   /* 语言标签样式 */
@@ -744,11 +755,21 @@
     color: #4b5563;
   }
 
-  /* 确保pre标签正确继承圆角 */
+  /* 确保pre标签正确继承圆角并允许水平滚动 */
   .code-block-wrapper pre {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     margin: 0;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  /* 确保消息内容中的文本自动换行 */
+  :deep(p),
+  :deep(div:not(.code-block-wrapper, .table-container, .mobile-scrollable)) {
+    overflow-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
 
   /* 复制按钮样式 */
@@ -801,8 +822,15 @@
   /* 表格样式 */
   :deep(table) {
     border-collapse: collapse;
-    width: 100%;
+    min-width: 100%;
     margin: 1rem 0;
+  }
+
+  /* 为表格添加水平滚动容器 */
+  :deep(.table-container) {
+    overflow-x: auto;
+    margin: 1rem 0;
+    -webkit-overflow-scrolling: touch; /* 添加移动端平滑滚动 */
   }
 
   :deep(th),
@@ -810,6 +838,7 @@
     border: 1px solid #e5e7eb;
     padding: 0.5rem 0.75rem;
     text-align: left;
+    white-space: nowrap; /* 表格单元格不换行 */
   }
 
   :deep(th) {
@@ -857,5 +886,51 @@
 
   :global(.dark) :deep(blockquote) {
     color: #9ca3af;
+  }
+
+  /* 移动端优化 */
+  @media (max-width: 768px) {
+    :deep(.table-container) {
+      max-width: calc(100vw - 0.5rem);
+      margin: 1rem auto;
+      padding: 0 0.25rem;
+    }
+
+    :deep(.code-block-wrapper) {
+      max-width: calc(100vw - 0.5rem);
+      margin: 1rem auto;
+      padding: 0 0.25rem;
+      border-radius: 8px;
+    }
+
+    :deep(.code-header) {
+      padding: 0.5rem 0.25rem;
+    }
+
+    :deep(pre) {
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    :deep(code) {
+      white-space: pre;
+    }
+
+    /* 确保复制按钮在移动端可见 */
+    :deep(.copy-button) {
+      padding: 0.25rem;
+      min-width: 32px;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 新增类用于处理移动端滚动内容的边距 */
+    :deep(.mobile-scrollable) {
+      margin: 1rem auto;
+      padding: 0 0.25rem;
+    }
   }
 </style>
