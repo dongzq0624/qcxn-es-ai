@@ -55,11 +55,14 @@ export const useApiStore = defineStore('api', () => {
 
     try {
       // 构建请求消息
+      // 过滤掉content为空的assistant角色消息
       const requestMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> =
-        messages.map((msg) => ({
-          role: msg.sender === 'system' ? 'system' : msg.sender === 'user' ? 'user' : 'assistant',
-          content: msg.content,
-        }))
+        messages
+          .filter((msg) => !(msg.sender === 'assistant' && !msg.content.trim()))
+          .map((msg) => ({
+            role: msg.sender === 'system' ? 'system' : msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.content,
+          }))
 
       // 如果没有系统消息，添加默认的系统消息（根据模型不同而不同）
       const hasSystemMessage = requestMessages.some((msg) => msg.role === 'system')
@@ -217,11 +220,14 @@ Current time: ${new Date().toString()}
 
     try {
       // 构建请求消息
+      // 过滤掉content为空的assistant角色消息
       const requestMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> =
-        messages.map((msg) => ({
-          role: msg.sender === 'system' ? 'system' : msg.sender === 'user' ? 'user' : 'assistant',
-          content: msg.content,
-        }))
+        messages
+          .filter((msg) => !(msg.sender === 'assistant' && !msg.content.trim()))
+          .map((msg) => ({
+            role: msg.sender === 'system' ? 'system' : msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.content,
+          }))
 
       // 如果没有系统消息，添加默认的系统消息（根据模型不同而不同）
       const hasSystemMessage = requestMessages.some((msg) => msg.role === 'system')
@@ -284,7 +290,7 @@ Current time: ${new Date().toString()}
 
       console.log('Using model:', actualModel)
       console.log('API URL:', apiUrl)
-      // console.log('Request messages:', requestMessages)
+      console.log('Request messages:', requestMessages)
 
       const requestBody: ChatRequest = {
         messages: requestMessages,
@@ -296,7 +302,7 @@ Current time: ${new Date().toString()}
         top_p: settings.topP || 1,
       }
 
-      // console.log('Request body:', JSON.stringify(requestBody, null, 2))
+      console.log('Request body:', JSON.stringify(requestBody, null, 2))
 
       const response = await fetch(apiUrl, {
         method: 'POST',

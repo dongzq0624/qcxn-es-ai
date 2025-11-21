@@ -2,7 +2,7 @@
   <div class="flex min-h-0 flex-1 flex-col bg-gray-50 dark:bg-gray-900">
     <!-- 消息显示区域 - 使用flex-1和min-h-0确保内容溢出时能正确滚动 -->
     <div ref="messagesContainer" class="min-h-0 flex-1 overflow-y-auto p-6">
-      <div class="mx-auto max-w-3xl space-y-6">
+      <div class="mx-auto max-w-3xl space-y-8">
         <div v-if="!currentConversation?.messages.length" class="mt-16 text-center text-gray-500">
           <div class="mx-auto max-w-md">
             <div
@@ -20,7 +20,7 @@
         <div
           v-for="message in currentConversation?.messages"
           :key="message.id"
-          class="message-item relative flex flex-col gap-3"
+          class="message-item relative flex flex-col gap-4"
         >
           <!-- ChatGPT风格：消息内容 -->
           <div :class="['flex gap-3', message.sender === 'user' ? 'justify-end' : 'justify-start']">
@@ -98,21 +98,56 @@
                 </div>
               </div>
 
-              <!-- ChatGPT风格：代码块 -->
+              <!-- 代码块 -->
               <div v-else-if="message.type === 'code'" class="message-content group relative">
-                <!-- ChatGPT风格：代码块容器 -->
+                <!-- 代码块容器 -->
                 <div
-                  class="prose prose-sm dark:bg-gray-850 max-w-none overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm"
+                  class="overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800"
                   :style="{
                     fontSize: settingsStore.settings.fontSize + 'px',
                     fontFamily: settingsStore.settings.chatFont,
                   }"
                 >
-                  <div v-html="formatMessage(message.content)"></div>
+                  <!-- 代码块头部信息栏 -->
+                  <div
+                    class="dark:bg-gray-850 flex items-center justify-between border-b border-gray-200 bg-gray-100 px-4 py-2 dark:border-gray-700"
+                  >
+                    <!-- 语言标签 -->
+                    <div class="font-mono text-sm text-gray-600 dark:text-gray-300">
+                      <span class="text-xs opacity-70">javascript</span>
+                    </div>
+
+                    <!-- 代码操作按钮 -->
+                    <div class="flex items-center gap-3">
+                      <button
+                        class="flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        title="复制代码"
+                        @click="copyCodeBlock(message)"
+                      >
+                        <Copy class="h-4 w-4" />
+                        <span>复制</span>
+                      </button>
+                      <button
+                        class="flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        title="下载代码"
+                        @click="downloadCodeBlock(message)"
+                      >
+                        <FileText class="h-4 w-4" />
+                        <span>下载</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 代码内容 -->
+                  <div class="max-w-none overflow-x-auto p-4 text-sm">
+                    <div v-html="formatMessage(message.content)"></div>
+                  </div>
                 </div>
 
-                <!-- ChatGPT风格：代码操作按钮 -->
-                <div class="absolute right-2 top-2 z-10 flex gap-1">
+                <!-- 消息操作按钮 -->
+                <div
+                  class="absolute right-2 top-2 z-10 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                >
                   <button
                     v-if="message.sender === 'assistant'"
                     @click="retryMessage(message)"
@@ -120,13 +155,6 @@
                     title="重试"
                   >
                     <RotateCcw class="h-3 w-3" />
-                  </button>
-                  <button
-                    @click="copyMessage(message)"
-                    class="rounded bg-gray-700 p-1 text-gray-300 transition-colors hover:bg-gray-600"
-                    title="复制"
-                  >
-                    <Copy class="h-3 w-3" />
                   </button>
                   <button
                     @click="deleteMessage(message.id)"
@@ -209,7 +237,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
   import {
     Edit3,
     Link,
@@ -230,6 +258,27 @@
   import { marked } from 'marked'
   import hljs from 'highlight.js'
   import DOMPurify from 'dompurify'
+  // 导入highlight.js样式
+  import 'highlight.js/styles/github-dark.css' // 使用暗色主题样式，适配深色模式
+
+  // 配置 marked，移到顶部确保在formatMessage函数调用前完成配置
+  marked.setOptions({
+    highlight: function (code, lang) {
+      // 确保使用正确的语言高亮
+      const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext'
+      try {
+        return hljs.highlight(code, { language }).value
+      } catch (err) {
+        console.error('代码高亮失败:', err)
+        return hljs.highlightAuto(code).value // 回退到自动检测
+      }
+    },
+    breaks: true, // 支持换行符（\n）转为 <br>
+    gfm: true, // 支持 GitHub 风格的 Markdown（表格、任务列表等）
+    langPrefix: 'hljs language-', // 为代码块添加正确的CSS类前缀
+    headerIds: false, // 禁用标题ID生成
+    mangle: false, // 禁用文本混淆
+  })
 
   const { t } = useI18n()
   const chatStore = useChatStore()
@@ -243,13 +292,45 @@
 
   // 统一的消息格式化函数
   const formatMessage = (content: string): string => {
-    // 使用 marked 解析 Markdown
+    // 使用 marked 解析 Markdown，确保代码高亮
     let parsedContent = marked.parse(content) as string
 
-    // 使用 DOMPurify 进行 XSS 防护
-    parsedContent = DOMPurify.sanitize(parsedContent)
+    // 使用 DOMPurify 进行 XSS 防护，允许必要的高亮相关类
+    parsedContent = DOMPurify.sanitize(parsedContent, {
+      ADD_TAGS: ['span', 'button'], // 允许 span 和 button 标签
+      ADD_ATTR: ['onclick', 'class', 'title'], // 允许 onclick 属性
+      ALLOWED_CLASSES: {
+        '*': ['hljs', 'hljs-*', 'language-*', 'code-block-wrapper', 'code-header', 'copy-button'],
+      },
+    })
+
+    // 在代码块右上角添加复制按钮
+    parsedContent = parsedContent.replace(
+      /<pre><code class="([^"]*)">([\s\S]*?)<\/code><\/pre>/g,
+      '<div class="code-block-wrapper relative"><div class="code-header absolute right-2 top-2"><button class="copy-button rounded bg-gray-700 p-1 text-gray-300 hover:bg-gray-600" onclick="copyCode(this)" title="复制代码"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div><pre><code class="$1">$2</code></pre></div>'
+    )
 
     return parsedContent
+  }
+
+  // 全局复制代码函数
+  window.copyCode = function (button: HTMLElement) {
+    const codeBlockWrapper = button.closest('.code-block-wrapper')
+    if (codeBlockWrapper) {
+      const codeElement = codeBlockWrapper.querySelector('code')
+      if (codeElement) {
+        const codeText = codeElement.innerText
+        navigator.clipboard.writeText(codeText).then(() => {
+          // 显示复制成功的提示
+          const originalHTML = button.innerHTML
+          button.innerHTML =
+            '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><polyline points="20 6 9 17 4 12"/></svg>'
+          setTimeout(() => {
+            button.innerHTML = originalHTML
+          }, 2000)
+        })
+      }
+    }
   }
 
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -370,6 +451,68 @@
     }
   }
 
+  // 复制代码块功能
+  const copyCodeBlock = async (message: Message) => {
+    try {
+      // 从Markdown内容中提取纯代码
+      // 假设内容格式为 ```javascript\ncode\n```
+      const codeMatch = message.content.match(/```[\w]*\n([\s\S]*?)```/)
+      const codeContent = codeMatch ? codeMatch[1] : message.content
+
+      await navigator.clipboard.writeText(codeContent)
+      ElMessage.success('代码已复制到剪贴板')
+    } catch (error) {
+      console.error('复制代码失败:', error)
+      ElMessage.error('复制代码失败，请手动复制')
+    }
+  }
+
+  // 下载代码块功能
+  const downloadCodeBlock = (message: Message) => {
+    try {
+      // 从Markdown内容中提取纯代码和语言信息
+      const codeMatch = message.content.match(/```([\w]*)\n([\s\S]*?)```/)
+      const language = codeMatch && codeMatch[1] ? codeMatch[1] : 'text'
+      const codeContent = codeMatch ? codeMatch[2] : message.content
+
+      // 根据语言确定文件扩展名
+      const extensionMap: Record<string, string> = {
+        javascript: 'js',
+        python: 'py',
+        java: 'java',
+        cpp: 'cpp',
+        csharp: 'cs',
+        html: 'html',
+        css: 'css',
+        json: 'json',
+        xml: 'xml',
+        sql: 'sql',
+        bash: 'sh',
+        powershell: 'ps1',
+      }
+
+      const extension = extensionMap[language] || 'txt'
+      const fileName = `code-${Date.now()}.${extension}`
+
+      // 创建Blob并下载
+      const blob = new Blob([codeContent], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      ElMessage.success('代码已下载')
+    } catch (error) {
+      console.error('下载代码失败:', error)
+      ElMessage.error('下载代码失败，请稍后重试')
+    }
+  }
+
   const deleteMessage = (messageId: string) => {
     if (confirm('确定要删除这条消息吗？')) {
       const conversation = currentConversation.value
@@ -484,20 +627,65 @@
   }
 
   // 监听消息变化，自动滚动到底部
-  const unwatch = computed(() => {
-    return currentConversation.value?.messages.length
-  })
+  watch(
+    () => currentConversation.value?.messages.length,
+    () => {
+      scrollToBottom()
+    }
+  )
 
-  // 初始化 marked
+  // 监听消息内容变化，确保代码高亮更新
+  watch(
+    () => currentConversation.value?.messages.map((m) => m.content),
+    () => {
+      nextTick(() => {
+        // 强制重新渲染代码高亮
+        document.querySelectorAll('pre code').forEach((block) => {
+          hljs.highlightElement(block as HTMLElement)
+        })
+      })
+    },
+    { deep: true }
+  )
+
   onMounted(() => {
-    // 配置 marked
-    marked.setOptions({
-      highlight: function (code, lang) {
-        const language = hljs.getLanguage(lang) ? lang : 'plaintext'
-        return hljs.highlight(code, { language }).value
-      },
-      breaks: true,
-      gfm: true,
+    // 组件挂载时的其他初始化逻辑
+    scrollToBottom()
+
+    // 初始化时对已有代码块进行高亮处理
+    nextTick(() => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block as HTMLElement)
+      })
     })
   })
+
+  onUnmounted(() => {
+    // 清理全局函数
+  })
 </script>
+
+<style scoped>
+  .code-block-wrapper {
+    position: relative;
+  }
+
+  .code-header {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    z-index: 10;
+  }
+
+  .copy-button {
+    background-color: rgba(55, 65, 81, 0.8); /* bg-gray-700 with opacity */
+    color: rgb(209, 213, 219); /* text-gray-300 */
+    border-radius: 0.25rem; /* rounded */
+    padding: 0.25rem;
+    transition: background-color 0.2s ease;
+  }
+
+  .copy-button:hover {
+    background-color: rgba(75, 85, 99, 0.8); /* bg-gray-600 with opacity */
+  }
+</style>
