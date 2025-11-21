@@ -22,38 +22,13 @@
           :key="message.id"
           class="message-item relative flex flex-col gap-4"
         >
-          <!-- ChatGPT风格：消息内容 -->
-          <div :class="['flex gap-3', message.sender === 'user' ? 'justify-end' : 'justify-start']">
-            <!-- AI头像 - ChatGPT风格 -->
-            <div v-if="message.sender === 'assistant'" class="flex-shrink-0">
-              <div
-                class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600"
-              >
-                <span class="text-sm font-semibold text-white">AI</span>
-              </div>
-            </div>
-
-            <!-- 用户头像 - ChatGPT风格 -->
-            <div v-if="message.sender === 'user'" class="order-2 flex-shrink-0">
-              <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700">
-                <span class="text-xs font-semibold text-white">
-                  {{ settingsStore.settings.avatar }}
-                </span>
-              </div>
-            </div>
-
+          <!-- 消息内容 -->
+          <div :class="['flex', message.sender === 'user' ? 'justify-end' : 'justify-start']">
             <!-- 消息气泡容器 -->
             <div
-              :class="['max-w-3xl', message.sender === 'user' ? 'order-1' : 'order-2']"
+              :class="['max-w-3xl']"
               :style="message.sender === 'assistant' ? { marginLeft: '0', paddingLeft: '0' } : {}"
             >
-              <!-- ChatGPT风格：AI助手标识 -->
-              <div v-if="message.sender === 'assistant'" class="mb-1 flex items-center gap-2">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {{ settingsStore.settings.language === 'zh' ? 'AI 助手' : 'AI Assistant' }}
-                </span>
-              </div>
-
               <!-- ChatGPT风格：消息气泡 -->
               <div
                 v-if="message.type === 'text'"
