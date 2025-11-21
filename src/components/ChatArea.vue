@@ -43,7 +43,10 @@
             </div>
 
             <!-- 消息气泡容器 -->
-            <div :class="['max-w-3xl', message.sender === 'user' ? 'order-1' : 'order-2']">
+            <div
+              :class="['max-w-3xl', message.sender === 'user' ? 'order-1' : 'order-2']"
+              :style="message.sender === 'assistant' ? { marginLeft: '0', paddingLeft: '0' } : {}"
+            >
               <!-- ChatGPT风格：AI助手标识 -->
               <div v-if="message.sender === 'assistant'" class="mb-1 flex items-center gap-2">
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -55,10 +58,10 @@
               <div
                 v-if="message.type === 'text'"
                 :class="[
-                  'message-content group relative max-w-2xl rounded-lg px-4 py-3.5',
+                  'message-content group relative max-w-2xl rounded-lg py-3.5',
                   message.sender === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100',
+                    ? 'bg-blue-500 px-4 text-white'
+                    : 'bg-gray-100 px-2 text-gray-900 dark:bg-gray-800 dark:text-gray-100',
                 ]"
                 :style="{
                   fontSize: settingsStore.settings.fontSize + 'px',
