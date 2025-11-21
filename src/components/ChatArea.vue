@@ -278,6 +278,10 @@
     langPrefix: 'hljs language-', // 为代码块添加正确的CSS类前缀
     headerIds: false, // 禁用标题ID生成
     mangle: false, // 禁用文本混淆
+    smartLists: true, // 启用智能列表格式
+    smartypants: true, // 启用智能标点符号（引号、破折号等）
+    tables: true, // 确保表格支持
+    taskLists: true, // 确保任务列表支持
   })
 
   const { t } = useI18n()
@@ -292,22 +296,73 @@
 
   // 统一的消息格式化函数
   const formatMessage = (content: string): string => {
-    // 使用 marked 解析 Markdown，确保代码高亮
-    let parsedContent = marked.parse(content) as string
+    // 预处理：确保换行符正确转换为\n
+    // 规范化换行符：将Windows风格(\r\n)和Mac风格(\r)统一转换为Unix风格(\n)
+    let normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 
-    // 使用 DOMPurify 进行 XSS 防护，允许必要的高亮相关类
+    // 使用 marked 解析 Markdown，确保代码高亮
+    let parsedContent = marked.parse(normalizedContent) as string
+
+    // 使用 DOMPurify 进行 XSS 防护，允许必要的高亮相关类和元素
     parsedContent = DOMPurify.sanitize(parsedContent, {
-      ADD_TAGS: ['span', 'button'], // 允许 span 和 button 标签
+      ADD_TAGS: [
+        'span',
+        'button',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'table',
+        'thead',
+        'tbody',
+        'tr',
+        'td',
+        'th',
+        'blockquote',
+        'ul',
+        'ol',
+        'li',
+      ], // 允许更多Markdown元素
       ADD_ATTR: ['onclick', 'class', 'title'], // 允许 onclick 属性
       ALLOWED_CLASSES: {
         '*': ['hljs', 'hljs-*', 'language-*', 'code-block-wrapper', 'code-header', 'copy-button'],
       },
     })
 
-    // 在代码块右上角添加复制按钮
+    // 在代码块右上角添加复制按钮，并在左上角显示代码类型
     parsedContent = parsedContent.replace(
       /<pre><code class="([^"]*)">([\s\S]*?)<\/code><\/pre>/g,
-      '<div class="code-block-wrapper relative"><div class="code-header absolute right-2 top-2"><button class="copy-button rounded bg-gray-700 p-1 text-gray-300 hover:bg-gray-600" onclick="copyCode(this)" title="复制代码"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div><pre><code class="$1">$2</code></pre></div>'
+      (match, languageClass, codeContent) => {
+        // 提取语言类型，通常格式为 'language-javascript' 或 'javascript'
+        let language = 'plaintext'
+        if (languageClass) {
+          // 处理可能的 'language-' 前缀
+          language = languageClass.replace(/^language-/, '')
+          // 提取出第一个非空字符串作为语言类型
+          if (language) {
+            // 处理多个类名的情况，取第一个可能的语言类
+            const langMatch = language.match(/^[a-zA-Z0-9]+/)
+            if (langMatch) {
+              language = langMatch[0]
+            }
+          }
+        }
+
+        return `<div class="code-block-wrapper relative">
+          <div class="code-header flex justify-between items-center p-2 bg-gray-800 text-xs text-gray-400">
+            <span class="language-label">${language}</span>
+            <button class="copy-button rounded bg-gray-700 p-1 text-gray-300 hover:bg-gray-600" onclick="copyCode(this)" title="复制代码">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy">
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+              </svg>
+            </button>
+          </div>
+          <pre><code class="${languageClass}">${codeContent}</code></pre>
+        </div>`
+      }
     )
 
     return parsedContent
@@ -666,17 +721,59 @@
 </script>
 
 <style scoped>
+  /* 代码块包装器样式 */
   .code-block-wrapper {
-    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 1em 0;
   }
 
+  /* 代码头部样式（包含语言标签和复制按钮） */
   .code-header {
-    position: absolute;
-    right: 8px;
-    top: 8px;
-    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5em 1em;
+    background-color: #1f2937; /* 深色背景 */
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
   }
 
+  /* 语言标签样式 */
+  .language-label {
+    font-family: Monaco, Menlo, 'Ubuntu Mono', monospace;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* 深色模式适配 */
+  :global(.dark) .code-header {
+    background-color: #111827;
+  }
+
+  :global(.dark) .language-label {
+    color: #9ca3af;
+  }
+
+  /* 浅色模式适配 */
+  :global(.light) .code-header {
+    background-color: #f3f4f6;
+  }
+
+  :global(.light) .language-label {
+    color: #4b5563;
+  }
+
+  /* 确保pre标签正确继承圆角 */
+  .code-block-wrapper pre {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    margin: 0;
+  }
+
+  /* 复制按钮样式 */
   .copy-button {
     background-color: rgba(55, 65, 81, 0.8); /* bg-gray-700 with opacity */
     color: rgb(209, 213, 219); /* text-gray-300 */
@@ -687,5 +784,100 @@
 
   .copy-button:hover {
     background-color: rgba(75, 85, 99, 0.8); /* bg-gray-600 with opacity */
+  }
+</style>
+
+<style scoped>
+  /* Markdown 样式优化 */
+  :deep(h1),
+  :deep(h2),
+  :deep(h3),
+  :deep(h4),
+  :deep(h5),
+  :deep(h6) {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  :deep(h1) {
+    font-size: 1.75rem;
+  }
+  :deep(h2) {
+    font-size: 1.5rem;
+  }
+  :deep(h3) {
+    font-size: 1.25rem;
+  }
+  :deep(h4) {
+    font-size: 1.125rem;
+  }
+  :deep(h5) {
+    font-size: 1rem;
+  }
+  :deep(h6) {
+    font-size: 0.875rem;
+  }
+
+  /* 表格样式 */
+  :deep(table) {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+  }
+
+  :deep(th),
+  :deep(td) {
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+
+  :deep(th) {
+    background-color: #f3f4f6;
+    font-weight: 600;
+  }
+
+  :deep(tr:nth-child(even)) {
+    background-color: #f9fafb;
+  }
+
+  /* 深色模式样式适配 */
+  :global(.dark) :deep(th),
+  :global(.dark) :deep(td) {
+    border-color: #374151;
+  }
+
+  :global(.dark) :deep(th) {
+    background-color: #1f2937;
+  }
+
+  :global(.dark) :deep(tr:nth-child(even)) {
+    background-color: #111827;
+  }
+
+  /* 列表样式 */
+  :deep(ul),
+  :deep(ol) {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+  }
+
+  :deep(li) {
+    margin: 0.25rem 0;
+  }
+
+  /* 引用样式 */
+  :deep(blockquote) {
+    border-left: 4px solid #3b82f6;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: #4b5563;
+    font-style: italic;
+  }
+
+  :global(.dark) :deep(blockquote) {
+    color: #9ca3af;
   }
 </style>
