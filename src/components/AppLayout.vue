@@ -179,11 +179,21 @@
   import { useRouter } from 'vue-router'
   import { Menu, ChevronLeft, ChevronRight } from 'lucide-vue-next'
   import Sidebar from '@/components/Sidebar.vue'
+  import { useThemeStore } from '@/stores/theme'
 
   const router = useRouter()
   const isMobile = ref(false)
   const sidebarOpen = ref(false)
   const sidebarCollapsed = ref(false)
+  const themeStore = useThemeStore()
+  let timeCheckInterval: number | null = null
+
+  // 检查是否需要更新主题
+  const checkAndApplyTheme = () => {
+    if (themeStore.theme === 'auto') {
+      themeStore.applyTheme('auto')
+    }
+  }
 
   const checkMobile = () => {
     isMobile.value = window.innerWidth < 1024
@@ -216,9 +226,15 @@
   onMounted(() => {
     checkMobile()
     window.addEventListener('resize', checkMobile)
+
+    // 每分钟检查一次时间，看是否需要切换主题
+    timeCheckInterval = window.setInterval(checkAndApplyTheme, 60000)
   })
 
   onUnmounted(() => {
     window.removeEventListener('resize', checkMobile)
+    if (timeCheckInterval) {
+      clearInterval(timeCheckInterval)
+    }
   })
 </script>

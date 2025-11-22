@@ -7,10 +7,17 @@ export const useThemeStore = defineStore('theme', () => {
   const theme = ref<Theme>('auto')
   const isDark = ref(false)
 
+  // 获取基于时间的实际主题
+  const getThemeByTime = () => {
+    const hour = new Date().getHours()
+    // 晚上8点(20)到早上8点(8)之间使用暗色主题
+    return hour >= 20 || hour < 8 ? 'dark' : 'light'
+  }
+
   // 计算实际使用的主题（考虑auto模式）
   const actualTheme = computed(() => {
     if (theme.value === 'auto') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      return getThemeByTime()
     }
     return theme.value
   })
@@ -20,7 +27,10 @@ export const useThemeStore = defineStore('theme', () => {
     theme.value = newTheme
     const html = document.documentElement
 
-    if (actualTheme.value === 'dark') {
+    // 获取实际要应用的主题
+    const themeToApply = actualTheme.value
+
+    if (themeToApply === 'dark') {
       html.classList.add('dark')
       html.setAttribute('data-theme', 'dark')
       isDark.value = true

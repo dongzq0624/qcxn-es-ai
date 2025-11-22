@@ -1,18 +1,16 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
 // 定义路由配置
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Root',
     redirect: '/chat',
-    children: [
-      {
-        path: 'chat/:uuid?',
-        name: 'Chat',
-        component: () => import('@/views/HomePage.vue'),
-      },
-    ],
+  },
+  {
+    path: '/chat/:uuid?',
+    name: 'Chat',
+    component: () => import('@/views/HomePage.vue'),
   },
   {
     path: '/settings',

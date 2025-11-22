@@ -102,7 +102,23 @@
 
   const exportToPNG = async () => {
     try {
-      const messageArea = document.querySelector('.flex-1.overflow-y-auto.p-6') as HTMLElement
+      // 查找消息区域容器，先尝试通过ref查找，再尝试通过类名查找
+      let messageArea = null
+
+      // 首先尝试通过ref查找ChatArea中的消息容器
+      const chatAreaElement = document.querySelector('[ref="messagesContainer"]')
+      if (chatAreaElement) {
+        messageArea = chatAreaElement as HTMLElement
+      } else {
+        // 如果通过ref找不到，则尝试通过类名查找
+        messageArea = document.querySelector('.min-h-0.flex-1.overflow-y-auto') as HTMLElement
+
+        // 如果还是找不到，再尝试原来的选择器
+        if (!messageArea) {
+          messageArea = document.querySelector('.flex-1.overflow-y-auto.p-6') as HTMLElement
+        }
+      }
+
       if (!messageArea) {
         ElMessage.error('无法找到消息区域')
         return

@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      'flex h-full flex-col border-r border-gray-200 bg-gradient-to-b from-blue-100 via-cyan-50 to-teal-50 shadow-inner transition-all duration-300',
+      'flex h-full flex-col border-r border-gray-200 bg-gradient-to-b from-blue-100 via-cyan-50 to-teal-50 shadow-inner transition-all duration-300 dark:border-gray-700 dark:from-gray-800 dark:to-gray-900',
       'h-full w-full',
       collapsed ? 'w-16' : isMobile ? 'w-full' : 'w-80',
     ]"
@@ -10,29 +10,31 @@
     <div
       v-if="collapsed && !isMobile"
       @click="$emit('toggle-collapse')"
-      class="flex cursor-pointer flex-col items-center space-y-4 bg-gradient-to-b from-blue-100 to-cyan-50 p-4 transition-all hover:bg-blue-100"
+      class="flex cursor-pointer flex-col items-center space-y-4 bg-gradient-to-b from-blue-100 to-cyan-50 p-4 transition-all hover:bg-blue-100 dark:from-gray-800 dark:to-gray-900 dark:hover:bg-gray-700"
     >
       <div class="text-2xl">🤖</div>
       <!-- 收缩时指向右 -->
-      <ChevronRight class="h-5 w-5 text-gray-600" />
+      <ChevronRight class="h-5 w-5 text-gray-600 dark:text-gray-400" />
     </div>
 
     <!-- 展开状态的完整侧边栏 -->
     <template v-else>
       <!-- 头部区域 -->
-      <div class="border-b border-white/30 bg-white/20 p-6 backdrop-blur-sm">
+      <div
+        class="border-b border-white/30 bg-white/20 p-6 backdrop-blur-sm dark:border-gray-700/30 dark:bg-gray-800/20"
+      >
         <div class="mb-2 flex items-center justify-between">
-          <h1 class="text-2xl font-bold text-gray-800">储能AI</h1>
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">储能AI</h1>
           <button
             v-if="!isMobile"
             @click="$emit('toggle-collapse')"
-            class="rounded-full p-1 transition-colors hover:bg-white/50"
+            class="rounded-full p-1 transition-colors hover:bg-white/50 dark:hover:bg-gray-700/50"
           >
             <!-- 未收缩时指向左 -->
-            <ChevronLeft class="h-5 w-5 text-gray-600" />
+            <ChevronLeft class="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
-        <p class="mb-6 text-sm text-gray-600">Build your own AI assistant.</p>
+        <p class="mb-6 text-sm text-gray-600 dark:text-gray-400">Build your own AI assistant.</p>
 
         <!-- 导航按钮 - 仅保留面具 -->
         <div class="flex gap-2">
@@ -41,8 +43,8 @@
             :class="[
               'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors',
               activeTab === 'masks'
-                ? 'bg-white text-gray-800 shadow-sm'
-                : 'bg-transparent text-gray-600 hover:bg-white/50',
+                ? 'bg-white text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-200'
+                : 'bg-transparent text-gray-600 hover:bg-white/50 dark:text-gray-400 dark:hover:bg-gray-700/50',
             ]"
           >
             <Theater class="h-4 w-4" />
@@ -61,41 +63,49 @@
             :class="[
               'group relative cursor-pointer rounded-xl p-4 transition-all',
               currentConversationId === conversation.id
-                ? 'border-2 border-teal-300 bg-white/80 shadow-lg backdrop-blur-sm'
-                : 'border border-white/20 bg-white/60 backdrop-blur-sm hover:bg-white/80 hover:shadow-md',
+                ? 'border-2 border-teal-300 bg-white/80 shadow-lg backdrop-blur-sm dark:border-teal-500 dark:bg-gray-700/80'
+                : 'border border-white/20 bg-white/60 backdrop-blur-sm hover:bg-white/80 hover:shadow-md dark:border-gray-700/20 dark:bg-gray-800/60 dark:hover:bg-gray-700/80',
             ]"
           >
             <!-- 右上角删除按钮 -->
             <button
               @click.stop="chatStore.deleteConversation(conversation.id)"
-              class="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 opacity-0 shadow-sm transition-all hover:bg-red-100 group-hover:opacity-100"
+              class="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 opacity-0 shadow-sm transition-all hover:bg-red-100 group-hover:opacity-100 dark:bg-gray-700 dark:hover:bg-red-900/50"
               title="删除对话"
             >
-              <X class="h-3 w-3 text-gray-400 hover:text-red-500" />
+              <X
+                class="h-3 w-3 text-gray-400 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-300"
+              />
             </button>
 
             <div class="pr-8">
               <!-- 为删除按钮留出空间 -->
-              <h3 class="mb-2 font-medium text-gray-800">{{ conversation.title }}</h3>
-              <p class="mb-2 text-sm text-gray-600">{{ conversation.messages.length }} 条对话</p>
-              <p class="text-xs text-gray-400">{{ conversation.timestamp }}</p>
+              <h3 class="mb-2 font-medium text-gray-800 dark:text-gray-200">
+                {{ conversation.title }}
+              </h3>
+              <p class="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ conversation.messages.length }} 条对话
+              </p>
+              <p class="text-xs text-gray-400 dark:text-gray-500">{{ conversation.timestamp }}</p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- 底部按钮 - 仅保留设置和新的聊天 -->
-      <div class="border-t border-white/30 bg-white/40 p-4 backdrop-blur-sm">
+      <div
+        class="border-t border-white/30 bg-white/40 p-4 backdrop-blur-sm dark:border-gray-700/30 dark:bg-gray-800/40"
+      >
         <div class="flex items-center justify-between">
           <button
             @click="openSettings"
-            class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white shadow-sm transition-colors hover:bg-gray-50"
+            class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
           >
-            <Settings class="h-5 w-5 text-gray-600" />
+            <Settings class="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
           <button
             @click="handleStartNewChat"
-            class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+            class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
           >
             <Plus class="h-4 w-4" />
             新的聊天
@@ -188,6 +198,11 @@
       position: sticky !important;
       bottom: 0 !important;
       background: rgba(255, 255, 255, 0.4) !important;
+      backdrop-filter: blur(8px) !important;
+    }
+
+    .dark .p-4.border-t.border-white\/30 {
+      background: rgba(31, 41, 55, 0.4) !important;
       backdrop-filter: blur(8px) !important;
     }
   }
