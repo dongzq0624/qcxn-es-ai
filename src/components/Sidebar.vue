@@ -6,18 +6,15 @@
       collapsed ? 'w-16' : isMobile ? 'w-full' : 'w-80',
     ]"
   >
-    <!-- 收缩状态的头像和展开按钮 -->
+    <!-- 收缩状态的头像 -->
     <div
       v-if="collapsed && !isMobile"
-      class="flex flex-col items-center space-y-4 bg-gradient-to-b from-blue-100 to-cyan-50 p-4"
+      @click="$emit('toggle-collapse')"
+      class="flex cursor-pointer flex-col items-center space-y-4 bg-gradient-to-b from-blue-100 to-cyan-50 p-4 transition-all hover:bg-blue-100"
     >
       <div class="text-2xl">🤖</div>
-      <button
-        @click="$emit('toggle-collapse')"
-        class="rounded-full p-2 transition-colors hover:bg-white/50"
-      >
-        <PanelRightOpen class="h-5 w-5 text-gray-600" />
-      </button>
+      <!-- 收缩时指向右 -->
+      <ChevronRight class="h-5 w-5 text-gray-600" />
     </div>
 
     <!-- 展开状态的完整侧边栏 -->
@@ -31,7 +28,8 @@
             @click="$emit('toggle-collapse')"
             class="rounded-full p-1 transition-colors hover:bg-white/50"
           >
-            <PanelLeftClose class="h-5 w-5 text-gray-600" />
+            <!-- 未收缩时指向左 -->
+            <ChevronLeft class="h-5 w-5 text-gray-600" />
           </button>
         </div>
         <p class="mb-6 text-sm text-gray-600">Build your own AI assistant.</p>
@@ -118,6 +116,9 @@
     PanelRightOpen,
     Plus,
     X,
+    ChevronLeft,
+    ChevronRight,
+    Theater,
   } from 'lucide-vue-next'
   import { useChatStore } from '@/stores/chat'
   import { useRouter } from 'vue-router'

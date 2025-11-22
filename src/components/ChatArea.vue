@@ -220,36 +220,51 @@
       class="flex-shrink-0 border-t border-gray-200 bg-white/70 p-6 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/70"
     >
       <!-- 输入框 -->
-      <div class="flex items-center gap-3">
-        <div class="relative flex-1">
+      <div class="flex-1">
+        <div class="relative">
           <textarea
             v-model="inputMessage"
+            ref="textareaRef"
             @keydown="handleKeyDown"
+            @input="autoResizeTextarea"
+            @focus="autoResizeTextarea"
             :placeholder="$t('chat.typeMessage')"
-            class="w-full resize-none rounded-xl border-2 border-gray-200 px-4 py-3 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-200"
+            class="w-full resize-none rounded-xl border-2 border-gray-200 px-4 py-3 pr-14 transition-all duration-300 ease-in-out focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-200"
             rows="1"
+            style="
+              min-height: 100px;
+              max-height: 200px;
+              overflow-y: auto;
+              transition: height 0.3s ease-in-out;
+            "
           ></textarea>
-          <div class="absolute bottom-3 right-3 flex items-center gap-2">
+          <div class="absolute bottom-3 right-14 flex items-center gap-2">
             <span class="text-xs text-gray-400 dark:text-gray-500">
               {{ settingsStore.settings.sendMode === 'enter' ? 'Enter' : 'Ctrl+Enter' }}
             </span>
           </div>
+          <button
+            @click="sendMessage"
+            :disabled="!inputMessage.trim()"
+            class="absolute bottom-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-white shadow-md transition-all duration-200 ease-in-out hover:scale-105 hover:bg-blue-600 hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:hover:bg-gray-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:disabled:bg-gray-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
+            </svg>
+          </button>
         </div>
-        <button
-          @click="sendMessage"
-          class="rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors hover:bg-blue-600"
-        >
-          {{ $t('chat.send') }}
-        </button>
       </div>
-
-      <!-- 提示文字 -->
-      <p class="mt-3 text-center text-xs text-gray-500 dark:text-gray-400">
-        {{
-          settingsStore.settings.sendMode === 'enter' ? $t('chat.enterToSend') : 'Ctrl + Enter 发送'
-        }}
-        • {{ $t('chat.shiftEnterToNewLine') }}
-      </p>
     </div>
   </div>
 </template>
@@ -272,7 +287,7 @@
   import { useApiStore } from '@/stores/api'
   import { useI18n } from 'vue-i18n'
   import type { Message } from '@/stores/chat'
-  import { ElMessage } from 'element-plus'
+  import { ElMessage, ElMessageBox } from 'element-plus'
   import { marked } from 'marked'
   import hljs from 'highlight.js'
   import DOMPurify from 'dompurify'
@@ -309,6 +324,7 @@
   const inputMessage = ref('')
   const typingMessages = ref<Set<string>>(new Set())
   const messagesContainer = ref<HTMLElement | null>(null)
+  const textareaRef = ref<HTMLTextAreaElement | null>(null)
 
   const currentConversation = computed(() => chatStore.currentConversation)
 
@@ -436,6 +452,26 @@
 
   const addNewLine = () => {
     inputMessage.value += '\n'
+    // 添加新行后立即调整输入框高度
+    nextTick(() => {
+      autoResizeTextarea()
+    })
+  }
+
+  // 自动调整输入框高度的方法
+  const autoResizeTextarea = () => {
+    const textarea = textareaRef.value
+    if (!textarea) return
+
+    // 重置高度以获取正确的scrollHeight
+    textarea.style.height = 'auto'
+
+    // 获取内容实际高度
+    const scrollHeight = textarea.scrollHeight
+
+    // 设置新高度，但不超过最大高度限制
+    const maxHeight = 200 // 与style中的max-height保持一致
+    textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px'
   }
 
   const createNewChat = () => {
@@ -497,6 +533,8 @@
           )
           if (messageIndex !== -1) {
             currentConversation.messages[messageIndex].content = fullContent
+            // 每次内容更新时滚动到底部，确保流式消息实时可见
+            scrollToBottom()
           }
         }
       )
@@ -595,26 +633,37 @@
   }
 
   const deleteMessage = (messageId: string) => {
-    if (confirm('确定要删除这条消息吗？')) {
-      const conversation = currentConversation.value
-      if (conversation) {
-        const messageIndex = conversation.messages.findIndex((msg) => msg.id === messageId)
-        if (messageIndex !== -1) {
-          conversation.messages.splice(messageIndex, 1)
+    // 使用Element Plus的MessageBox组件替代原生confirm
+    ElMessageBox.confirm('确定要删除这条消息吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+      center: true,
+    })
+      .then(() => {
+        const conversation = currentConversation.value
+        if (conversation) {
+          const messageIndex = conversation.messages.findIndex((msg) => msg.id === messageId)
+          if (messageIndex !== -1) {
+            conversation.messages.splice(messageIndex, 1)
 
-          if (conversation.messages.length > 0) {
-            const lastMessage = conversation.messages[conversation.messages.length - 1]
-            conversation.lastMessage =
-              lastMessage.content.substring(0, 50) + (lastMessage.content.length > 50 ? '...' : '')
-          } else {
-            conversation.lastMessage = ''
+            if (conversation.messages.length > 0) {
+              const lastMessage = conversation.messages[conversation.messages.length - 1]
+              conversation.lastMessage =
+                lastMessage.content.substring(0, 50) +
+                (lastMessage.content.length > 50 ? '...' : '')
+            } else {
+              conversation.lastMessage = ''
+            }
+
+            localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
+            ElMessage.success('消息已删除')
           }
-
-          localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
-          ElMessage.success('消息已删除')
         }
-      }
-    }
+      })
+      .catch(() => {
+        // 用户取消删除操作，不做任何处理
+      })
   }
 
   const retryMessage = async (message: Message) => {
@@ -675,6 +724,8 @@
           const msgIndex = conversation.messages.findIndex((msg) => msg.id === newAiMessageId)
           if (msgIndex !== -1) {
             conversation.messages[msgIndex].content = fullContent
+            // 每次内容更新时滚动到底部，确保流式消息实时可见
+            scrollToBottom()
           }
         }
       )
@@ -702,10 +753,26 @@
   const scrollToBottom = () => {
     nextTick(() => {
       if (messagesContainer.value) {
-        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+        // 使用 scrollIntoView 方法，配合 smooth 选项实现更流畅的滚动效果
+        // 找到最后一个消息元素
+        const lastMessage = messagesContainer.value.querySelector('.message-item:last-child')
+        if (lastMessage) {
+          lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' })
+        } else {
+          // 备用方案：直接设置 scrollTop
+          messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+        }
       }
     })
   }
+
+  // 监听当前会话ID变化，确保切换聊天时自动滚动到底部
+  watch(
+    () => chatStore.currentConversationId,
+    () => {
+      scrollToBottom()
+    }
+  )
 
   // 监听消息变化，自动滚动到底部
   watch(
@@ -738,6 +805,13 @@
       document.querySelectorAll('pre code').forEach((block) => {
         hljs.highlightElement(block as HTMLElement)
       })
+    })
+  })
+
+  // 监听输入消息变化，确保高度正确调整
+  watch(inputMessage, () => {
+    nextTick(() => {
+      autoResizeTextarea()
     })
   })
 
@@ -968,5 +1042,29 @@
       margin: 1rem auto;
       padding: 0 0.25rem;
     }
+
+    /* 移动端输入框优化 - 与PC端保持一致的高度 */
+    textarea {
+      min-height: 100px !important;
+      font-size: 16px !important; /* 防止iOS缩放 */
+    }
+  }
+
+  /* 输入框相关样式优化 */
+  textarea {
+    /* 确保字体大小一致且易于阅读 */
+    font-size: 1rem;
+    line-height: 1.5;
+
+    /* 确保文本在多行时垂直对齐 */
+    vertical-align: top;
+
+    /* 确保在获取焦点时不会出现额外的外边框 */
+    box-sizing: border-box;
+  }
+
+  /* 确保在输入框高度变化时，底部信息区域也能平滑过渡 */
+  .absolute.bottom-3.right-3 {
+    transition: transform 0.3s ease-in-out;
   }
 </style>

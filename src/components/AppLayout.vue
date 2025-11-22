@@ -57,26 +57,6 @@
           <!-- 移动端不需要侧边栏收缩按钮 -->
         </div>
 
-        <!-- 桌面端侧边栏收缩按钮 -->
-        <div
-          v-if="!isMobile"
-          :class="[
-            'fixed top-1/2 z-30 -translate-y-1/2 transition-all duration-300 ease-in-out',
-            sidebarCollapsed ? 'left-12' : 'left-72',
-          ]"
-        >
-          <button
-            @click="toggleSidebarCollapse"
-            class="rounded-full border border-gray-200 bg-white p-2 shadow-lg transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
-          >
-            <ChevronLeft
-              v-if="!sidebarCollapsed"
-              class="h-4 w-4 text-gray-600 dark:text-gray-400"
-            />
-            <ChevronRight v-else class="h-4 w-4 text-gray-600 dark:text-gray-400" />
-          </button>
-        </div>
-
         <!-- 路由视图 -->
         <router-view class="flex-1 overflow-hidden" />
       </div>
