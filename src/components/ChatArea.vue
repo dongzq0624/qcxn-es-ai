@@ -34,9 +34,9 @@
                 <!-- 消息气泡 -->
                 <div
                   :class="[
-                    'max-w-2xl rounded-lg py-3.5',
+                    'max-w-2xl rounded-lg py-2',
                     message.sender === 'user'
-                      ? 'bg-blue-500 px-4 text-white'
+                      ? 'px-2 text-right'
                       : 'bg-gray-100 px-2 text-gray-900 dark:bg-gray-800 dark:text-gray-100',
                   ]"
                   :style="{
@@ -186,7 +186,7 @@
 
               <!-- 时间戳 -  -->
               <div
-                class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400"
+                class="m-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400"
               >
                 <div
                   v-if="message.sender === 'assistant' && message.model"
