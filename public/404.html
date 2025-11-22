@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>储能智能助手</title>
+    <script>
+      // GitHub Pages SPA路由修复方案
+      // 当用户直接访问非根路径时，GitHub Pages会返回404
+      // 此脚本将原始路径保存到查询参数，然后重定向到根路径
+      const l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + 
+        (l.port ? ':' + l.port : '') + 
+        '/qcxn-es-ai/?p=' + 
+        l.pathname.slice('/qcxn-es-ai/'.length).replace(/&/g, '~and~') +
+        (l.hash ? '#' + l.hash.slice(1) : '')
+      );
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

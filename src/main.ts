@@ -52,5 +52,15 @@ watchEffect(() => {
   }
 })
 
+// 处理GitHub Pages SPA路由问题 - 从404.html恢复原始路径
+const urlParams = new URLSearchParams(window.location.search)
+const path = urlParams.get('p')
+if (path) {
+  // 恢复原始路径并解码特殊字符
+  const decodedPath = path.replace(/~and~/g, '&')
+  // 使用replace而不是push，避免在历史记录中留下重定向痕迹
+  router.replace('/' + decodedPath)
+}
+
 // 挂载应用
 app.mount('#app')
