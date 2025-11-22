@@ -11,14 +11,14 @@ echo "检查Node.js版本..."
 NODE_VERSION=$(node -v)
 echo "当前Node.js版本: $NODE_VERSION"
 
-# 检查npm版本
-echo "检查npm版本..."
-NPM_VERSION=$(npm -v)
-echo "当前npm版本: $NPM_VERSION"
+# 检查pnpm版本
+echo "检查pnpm版本..."
+PNPM_VERSION=$(pnpm -v)
+echo "当前pnpm版本: $PNPM_VERSION"
 
 # 安装依赖
 echo "安装依赖..."
-npm ci
+pnpm install
 
 if [ $? -ne 0 ]; then
   echo "❌ 依赖安装失败"
@@ -27,7 +27,7 @@ fi
 
 # 运行TypeScript检查
 echo "运行TypeScript检查..."
-npm run check
+pnpm run check
 
 if [ $? -ne 0 ]; then
   echo "❌ TypeScript检查失败"
@@ -36,7 +36,7 @@ fi
 
 # 运行ESLint检查
 echo "运行ESLint检查..."
-npm run lint
+pnpm run lint
 
 if [ $? -ne 0 ]; then
   echo "❌ ESLint检查失败"
@@ -45,7 +45,7 @@ fi
 
 # 构建项目
 echo "构建项目..."
-npm run build
+pnpm run build
 
 if [ $? -ne 0 ]; then
   echo "❌ 项目构建失败"
