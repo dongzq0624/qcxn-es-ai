@@ -563,6 +563,9 @@
 
       typingMessages.value.delete(aiMessageId)
 
+      // 保存到localStorage，确保刷新页面后消息不丢失
+      localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
+
       // 滚动到底部
       scrollToBottom()
     } catch (error) {
