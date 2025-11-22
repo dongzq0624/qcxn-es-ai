@@ -6,6 +6,8 @@ import traeBadgePlugin from 'vite-plugin-trae-solo-badge'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // 设置基础路径，确保GitHub Pages正确加载资源
+  base: '/qcxn-es-ai/',
   build: {
     sourcemap: 'hidden',
   },
