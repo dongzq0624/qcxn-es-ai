@@ -52,7 +52,7 @@
             >
               <Menu class="h-5 w-5 text-gray-600 dark:text-gray-400" />
             </button>
-            <h1 class="ml-4 text-lg font-semibold text-gray-800 dark:text-gray-200">NextChat</h1>
+            <h1 class="ml-4 text-lg font-semibold text-gray-800 dark:text-gray-200">储能AI</h1>
           </div>
           <!-- 移动端不需要侧边栏收缩按钮 -->
         </div>

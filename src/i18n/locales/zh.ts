@@ -20,7 +20,7 @@ export default {
     typeMessage: '输入消息...',
   },
   sidebar: {
-    title: 'NextChat',
+    title: 'Energy Storage AI',
     subtitle: 'Build your own AI assistant.',
     chat: '聊天',
     discover: '发现',

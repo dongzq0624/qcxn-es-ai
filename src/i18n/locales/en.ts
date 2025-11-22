@@ -20,7 +20,7 @@ export default {
     typeMessage: 'Type a message...',
   },
   sidebar: {
-    title: 'NextChat',
+    title: '储能AI',
     subtitle: 'Build your own AI assistant.',
     chat: 'Chat',
     discover: 'Discover',

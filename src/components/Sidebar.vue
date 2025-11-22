@@ -25,7 +25,7 @@
       <!-- 头部区域 -->
       <div class="border-b border-white/30 bg-white/20 p-6 backdrop-blur-sm">
         <div class="mb-2 flex items-center justify-between">
-          <h1 class="text-2xl font-bold text-gray-800">NextChat</h1>
+          <h1 class="text-2xl font-bold text-gray-800">储能AI</h1>
           <button
             v-if="!isMobile"
             @click="$emit('toggle-collapse')"

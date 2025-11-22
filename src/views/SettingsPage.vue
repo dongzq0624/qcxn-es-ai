@@ -173,6 +173,10 @@
               </div>
               <el-select v-model="settingsStore.settings.model" style="width: 150px">
                 <el-option value="deepseek" label="DeepSeek (deepseek-chat)" />
+                <el-option value="deepseek-v3.1" label="DeepSeek V3.1 Chat" />
+                <el-option value="deepseek-v3.2-exp" label="DeepSeek V3.2-Exp" />
+                <el-option value="deepseek-prover-v2" label="DeepSeek-Prover-V2-671B" />
+                <el-option value="deepseek-reasoner" label="DeepSeek-Reasoner" />
                 <el-option value="gpt-3.5-turbo" label="GPT-3.5 Turbo" />
                 <el-option value="gpt-4" label="GPT-4" />
                 <el-option value="gpt-4-turbo" label="GPT-4 Turbo" />

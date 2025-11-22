@@ -26,30 +26,34 @@
           <div :class="['flex', message.sender === 'user' ? 'justify-end' : 'justify-start']">
             <!-- 消息气泡容器 -->
             <div
-              :class="['max-w-3xl']"
+              :class="['group max-w-3xl']"
               :style="message.sender === 'assistant' ? { marginLeft: '0', paddingLeft: '0' } : {}"
             >
-              <!-- ChatGPT风格：消息气泡 -->
-              <div
-                v-if="message.type === 'text'"
-                :class="[
-                  'message-content group relative max-w-2xl rounded-lg py-3.5',
-                  message.sender === 'user'
-                    ? 'bg-blue-500 px-4 text-white'
-                    : 'bg-gray-100 px-2 text-gray-900 dark:bg-gray-800 dark:text-gray-100',
-                ]"
-                :style="{
-                  fontSize: settingsStore.settings.fontSize + 'px',
-                  fontFamily: settingsStore.settings.chatFont,
-                }"
-              >
-                <div v-html="formatMessage(message.content)"></div>
-                <!-- ChatGPT风格：消息操作按钮 -->
+              <!-- 文本消息 -->
+              <template v-if="message.type === 'text'">
+                <!-- 消息气泡 -->
                 <div
-                  class="absolute right-2 top-2 flex items-center gap-1 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                  :class="
-                    message.sender === 'user' ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'
-                  "
+                  :class="[
+                    'max-w-2xl rounded-lg py-3.5',
+                    message.sender === 'user'
+                      ? 'bg-blue-500 px-4 text-white'
+                      : 'bg-gray-100 px-2 text-gray-900 dark:bg-gray-800 dark:text-gray-100',
+                  ]"
+                  :style="{
+                    fontSize: settingsStore.settings.fontSize + 'px',
+                    fontFamily: settingsStore.settings.chatFont,
+                  }"
+                >
+                  <div v-html="formatMessage(message.content)"></div>
+                </div>
+                <!-- 消息操作按钮 - 根据发送者位置调整 -->
+                <div
+                  :class="[
+                    'mt-1 flex items-center gap-1 text-xs transition-opacity duration-200',
+                    message.sender === 'user'
+                      ? 'justify-end text-gray-700 dark:text-gray-300'
+                      : 'justify-start text-gray-500 dark:text-gray-400',
+                  ]"
                 >
                   <button
                     v-if="message.sender === 'assistant'"
@@ -61,23 +65,33 @@
                   </button>
                   <button
                     @click="copyMessage(message)"
-                    class="rounded-md p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
+                    :class="[
+                      'rounded-md p-1.5',
+                      message.sender === 'user'
+                        ? 'bg-white/20 hover:bg-white/30'
+                        : 'hover:bg-black/10 dark:hover:bg-white/10',
+                    ]"
                     title="复制"
                   >
                     <Copy class="h-3.5 w-3.5" />
                   </button>
                   <button
                     @click="deleteMessage(message.id)"
-                    class="rounded-md p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
+                    :class="[
+                      'rounded-md p-1.5',
+                      message.sender === 'user'
+                        ? 'bg-white/20 hover:bg-white/30'
+                        : 'hover:bg-black/10 dark:hover:bg-white/10',
+                    ]"
                     title="删除"
                   >
                     <Trash2 class="h-3.5 w-3.5" />
                   </button>
                 </div>
-              </div>
+              </template>
 
-              <!-- 代码块 -->
-              <div v-else-if="message.type === 'code'" class="message-content group relative">
+              <!-- 代码块消息 -->
+              <template v-else-if="message.type === 'code'">
                 <!-- 代码块容器 -->
                 <div
                   class="code-block-container overflow-hidden bg-gray-50 dark:bg-gray-800"
@@ -126,27 +140,49 @@
                   </div>
                 </div>
 
-                <!-- 消息操作按钮 -->
+                <!-- 消息操作按钮 - 根据发送者位置调整 -->
                 <div
-                  class="absolute right-2 top-2 z-10 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                  :class="[
+                    'mt-1 flex items-center gap-1 text-xs transition-opacity duration-200',
+                    message.sender === 'user'
+                      ? 'justify-end text-gray-700 dark:text-gray-300'
+                      : 'justify-start text-gray-500 dark:text-gray-400',
+                  ]"
                 >
                   <button
                     v-if="message.sender === 'assistant'"
                     @click="retryMessage(message)"
-                    class="rounded bg-gray-700 p-1 text-gray-300 transition-colors hover:bg-gray-600"
+                    class="rounded-md p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
                     title="重试"
                   >
-                    <RotateCcw class="h-3 w-3" />
+                    <RotateCcw class="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    @click="copyMessage(message)"
+                    :class="[
+                      'rounded-md p-1.5',
+                      message.sender === 'user'
+                        ? 'bg-white/20 hover:bg-white/30'
+                        : 'hover:bg-black/10 dark:hover:bg-white/10',
+                    ]"
+                    title="复制"
+                  >
+                    <Copy class="h-3.5 w-3.5" />
                   </button>
                   <button
                     @click="deleteMessage(message.id)"
-                    class="rounded bg-gray-700 p-1 text-red-400 transition-colors hover:bg-red-900/20"
+                    :class="[
+                      'rounded-md p-1.5',
+                      message.sender === 'user'
+                        ? 'bg-white/20 hover:bg-white/30'
+                        : 'hover:bg-black/10 dark:hover:bg-white/10',
+                    ]"
                     title="删除"
                   >
-                    <Trash2 class="h-3 w-3" />
+                    <Trash2 class="h-3.5 w-3.5" />
                   </button>
                 </div>
-              </div>
+              </template>
 
               <!-- 时间戳 -  -->
               <div

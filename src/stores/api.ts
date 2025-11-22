@@ -37,12 +37,12 @@ export const useApiStore = defineStore('api', () => {
   const currentController = ref<AbortController | null>(null)
   const stopped = ref(false)
 
-  // API 配置
-  const DEEPSEEK_API_KEY = 'sk-f3e2a86d8eb34f519eabe9fa84435024'
-  const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions'
+  // API 配置 - 从环境变量中读取
+  const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY
+  const DEEPSEEK_API_URL = import.meta.env.VITE_DEEPSEEK_API_URL
 
-  const OPENAI_API_KEY = 'sk-BvUtwVQbhN6rb1mPuVrKtcE1UfKm33a0vT6QgZuVNuthsDLu'
-  const OPENAI_API_BASE_URL = 'https://sg.uiuiapi.com/v1'
+  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
+  const OPENAI_API_BASE_URL = import.meta.env.VITE_OPENAI_API_BASE_URL
   const OPENAI_API_URL = `${OPENAI_API_BASE_URL}/chat/completions`
 
   const sendMessage = async (
@@ -78,8 +78,48 @@ Latex block: $$e=mc^2$$
 
 `
       } else if (model === 'deepseek') {
-        // DeepSeek 模型的系统消息
+        // DeepSeek 基础模型的系统消息
         systemContent = `You are DeepSeek, a large language model trained by DeepSeek.
+Current model: ${model}
+Current time: ${new Date().toString()}
+Latex inline: \\(x^2\\) 
+Latex block: $$e=mc^2$$
+
+`
+      } else if (model === 'deepseek-v3.1') {
+        // DeepSeek V3.1 模型的系统消息
+        systemContent = `You are DeepSeek V3.1 Chat, the latest generation large language model trained by DeepSeek.
+You are optimized for natural language conversations with improved reasoning and knowledge capabilities.
+Current model: ${model}
+Current time: ${new Date().toString()}
+Latex inline: \\(x^2\\) 
+Latex block: $$e=mc^2$$
+
+`
+      } else if (model === 'deepseek-v3.2-exp') {
+        // DeepSeek V3.2-Exp 模型的系统消息
+        systemContent = `You are DeepSeek V3.2-Exp, an experimental model with Sparse Attention mechanism trained by DeepSeek.
+You have enhanced capabilities for handling complex queries and large contexts.
+Current model: ${model}
+Current time: ${new Date().toString()}
+Latex inline: \\(x^2\\) 
+Latex block: $$e=mc^2$$
+
+`
+      } else if (model === 'deepseek-prover-v2') {
+        // DeepSeek-Prover-V2-671B 模型的系统消息
+        systemContent = `You are DeepSeek-Prover-V2-671B, a specialized large language model for mathematical theorem proving trained by DeepSeek.
+You excel in formal mathematical reasoning and proof generation.
+Current model: ${model}
+Current time: ${new Date().toString()}
+Latex inline: \\(x^2\\) 
+Latex block: $$e=mc^2$$
+
+`
+      } else if (model === 'deepseek-reasoner') {
+        // DeepSeek-Reasoner 模型的系统消息
+        systemContent = `You are DeepSeek-Reasoner, a specialized large language model optimized for complex reasoning tasks trained by DeepSeek.
+You excel in step-by-step reasoning, logical analysis, and problem-solving.
 Current model: ${model}
 Current time: ${new Date().toString()}
 Latex inline: \\(x^2\\) 
@@ -115,13 +155,33 @@ Current time: ${new Date().toString()}
       let apiKey = ''
 
       // 根据模型选择对应的API配置
-      if (model === 'deepseek') {
+      if (model.startsWith('deepseek') && model !== 'deepseek-reasoner') {
+        // 所有DeepSeek聊天模型的actualModel均为deepseek-chat
         actualModel = 'deepseek-chat'
         apiUrl = DEEPSEEK_API_URL
         apiKey = DEEPSEEK_API_KEY
-      } else if (model === 'gpt-3.5-turbo' || model === 'gpt-4') {
-        apiUrl = OPENAI_API_URL
-        apiKey = OPENAI_API_KEY
+      } else if (model === 'deepseek-reasoner') {
+        // DeepSeek推理模型的actualModel为deepseek-reasoner
+        actualModel = 'deepseek-reasoner'
+        apiUrl = DEEPSEEK_API_URL
+        apiKey = DEEPSEEK_API_KEY
+      } else if (
+        model === 'gpt-3.5-turbo' ||
+        model === 'gpt-4' ||
+        model === 'gpt-4-turbo' ||
+        model === 'claude-3.5'
+      ) {
+        // 保持其他模型的处理逻辑
+        if (model.includes('gpt')) {
+          apiUrl = OPENAI_API_URL
+          apiKey = OPENAI_API_KEY
+          actualModel = model
+        } else {
+          // Claude 模型
+          apiUrl = ANTHROPIC_API_URL
+          apiKey = ANTHROPIC_API_KEY
+          actualModel = model
+        }
       } else {
         // 默认使用 DeepSeek
         actualModel = 'deepseek-chat'
@@ -249,8 +309,48 @@ Latex block: $$e=mc^2$$
 
 `
       } else if (model === 'deepseek') {
-        // DeepSeek 模型的系统消息
+        // DeepSeek 基础模型的系统消息
         systemContent = `You are DeepSeek, a large language model trained by DeepSeek.
+Current model: ${model}
+Current time: ${new Date().toString()}
+Latex inline: \\(x^2\\) 
+Latex block: $$e=mc^2$$
+
+`
+      } else if (model === 'deepseek-v3.1') {
+        // DeepSeek V3.1 模型的系统消息
+        systemContent = `You are DeepSeek V3.1 Chat, the latest generation large language model trained by DeepSeek.
+You are optimized for natural language conversations with improved reasoning and knowledge capabilities.
+Current model: ${model}
+Current time: ${new Date().toString()}
+Latex inline: \\(x^2\\) 
+Latex block: $$e=mc^2$$
+
+`
+      } else if (model === 'deepseek-v3.2-exp') {
+        // DeepSeek V3.2-Exp 模型的系统消息
+        systemContent = `You are DeepSeek V3.2-Exp, an experimental model with Sparse Attention mechanism trained by DeepSeek.
+You have enhanced capabilities for handling complex queries and large contexts.
+Current model: ${model}
+Current time: ${new Date().toString()}
+Latex inline: \\(x^2\\) 
+Latex block: $$e=mc^2$$
+
+`
+      } else if (model === 'deepseek-prover-v2') {
+        // DeepSeek-Prover-V2-671B 模型的系统消息
+        systemContent = `You are DeepSeek-Prover-V2-671B, a specialized large language model for mathematical theorem proving trained by DeepSeek.
+You excel in formal mathematical reasoning and proof generation.
+Current model: ${model}
+Current time: ${new Date().toString()}
+Latex inline: \\(x^2\\) 
+Latex block: $$e=mc^2$$
+
+`
+      } else if (model === 'deepseek-reasoner') {
+        // DeepSeek-Reasoner 模型的系统消息
+        systemContent = `You are DeepSeek-Reasoner, a specialized large language model optimized for complex reasoning tasks trained by DeepSeek.
+You excel in step-by-step reasoning, logical analysis, and problem-solving.
 Current model: ${model}
 Current time: ${new Date().toString()}
 Latex inline: \\(x^2\\) 
@@ -286,13 +386,33 @@ Current time: ${new Date().toString()}
       let apiKey = ''
 
       // 根据模型选择对应的API配置
-      if (model === 'deepseek') {
+      if (model.startsWith('deepseek') && model !== 'deepseek-reasoner') {
+        // 所有DeepSeek聊天模型的actualModel均为deepseek-chat
         actualModel = 'deepseek-chat'
         apiUrl = DEEPSEEK_API_URL
         apiKey = DEEPSEEK_API_KEY
-      } else if (model === 'gpt-3.5-turbo' || model === 'gpt-4') {
-        apiUrl = OPENAI_API_URL
-        apiKey = OPENAI_API_KEY
+      } else if (model === 'deepseek-reasoner') {
+        // DeepSeek推理模型的actualModel为deepseek-reasoner
+        actualModel = 'deepseek-reasoner'
+        apiUrl = DEEPSEEK_API_URL
+        apiKey = DEEPSEEK_API_KEY
+      } else if (
+        model === 'gpt-3.5-turbo' ||
+        model === 'gpt-4' ||
+        model === 'gpt-4-turbo' ||
+        model === 'claude-3.5'
+      ) {
+        // 保持其他模型的处理逻辑
+        if (model.includes('gpt')) {
+          apiUrl = OPENAI_API_URL
+          apiKey = OPENAI_API_KEY
+          actualModel = model
+        } else {
+          // Claude 模型
+          apiUrl = ANTHROPIC_API_URL
+          apiKey = ANTHROPIC_API_KEY
+          actualModel = model
+        }
       } else {
         // 默认使用 DeepSeek
         actualModel = 'deepseek-chat'
