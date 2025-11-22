@@ -4,7 +4,7 @@
 
 const puppeteer = require('puppeteer')
 
-describe('ES-AI 应用部署测试', () => {
+describe('qcxn-es-ai 应用部署测试', () => {
   let browser
   let page
 
@@ -59,7 +59,7 @@ describe('ES-AI 应用部署测试', () => {
   describe('远程部署验证', () => {
     it('远程页面应可访问', async () => {
       // 替换为实际的部署URL
-      const deploymentUrl = 'https://your-username.github.io/es-ai'
+      const deploymentUrl = 'https://your-username.github.io/qcxn-es-ai'
 
       // 设置导航超时
       page.setDefaultNavigationTimeout(30000)
@@ -78,7 +78,7 @@ describe('ES-AI 应用部署测试', () => {
 
     it('远程页面内容应完整', async () => {
       // 替换为实际的部署URL
-      const deploymentUrl = 'https://your-username.github.io/es-ai'
+      const deploymentUrl = 'https://your-username.github.io/qcxn-es-ai'
 
       try {
         await page.goto(deploymentUrl)
