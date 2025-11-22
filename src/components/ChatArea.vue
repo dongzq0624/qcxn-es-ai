@@ -294,18 +294,15 @@
   // 导入highlight.js样式
   import 'highlight.js/styles/github-dark.css' // 使用暗色主题样式，适配深色模式
 
+  // 全局类型声明
+  declare global {
+    interface Window {
+      copyCode: (button: HTMLElement) => void
+    }
+  }
+
   // 配置 marked，移到顶部确保在formatMessage函数调用前完成配置
   marked.setOptions({
-    highlight: function (code, lang) {
-      // 确保使用正确的语言高亮
-      const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext'
-      try {
-        return hljs.highlight(code, { language }).value
-      } catch (err) {
-        console.error('代码高亮失败:', err)
-        return hljs.highlightAuto(code).value // 回退到自动检测
-      }
-    },
     breaks: true, // 支持换行符（\n）转为 <br>
     gfm: true, // 支持 GitHub 风格的 Markdown（表格、任务列表等）
     langPrefix: 'hljs language-', // 为代码块添加正确的CSS类前缀
@@ -315,6 +312,32 @@
     smartypants: true, // 启用智能标点符号（引号、破折号等）
     tables: true, // 确保表格支持
     taskLists: true, // 确保任务列表支持
+  } as any)
+
+  // 为marked添加高亮处理
+  const highlightCode = (code: string, lang?: string) => {
+    // 确保使用正确的语言高亮
+    const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext'
+    try {
+      return hljs.highlight(code, { language }).value
+    } catch (err) {
+      console.error('代码高亮失败:', err)
+      return hljs.highlightAuto(code).value
+    }
+  }
+
+  // 使用type assertion处理marked配置
+  ;(marked as any).setOptions({
+    highlight: highlightCode,
+    breaks: true,
+    gfm: true,
+    langPrefix: 'hljs language-',
+    headerIds: false,
+    mangle: false,
+    smartLists: true,
+    smartypants: true,
+    tables: true,
+    taskLists: true,
   })
 
   const { t } = useI18n()
@@ -337,33 +360,32 @@
     // 使用 marked 解析 Markdown，确保代码高亮
     let parsedContent = marked.parse(normalizedContent) as string
 
-    // 使用 DOMPurify 进行 XSS 防护，允许必要的高亮相关类和元素
-    parsedContent = DOMPurify.sanitize(parsedContent, {
-      ADD_TAGS: [
-        'span',
-        'button',
-        'h1',
-        'h2',
-        'h3',
-        'h4',
-        'h5',
-        'h6',
-        'table',
-        'thead',
-        'tbody',
-        'tr',
-        'td',
-        'th',
-        'blockquote',
-        'ul',
-        'ol',
-        'li',
-      ], // 允许更多Markdown元素
-      ADD_ATTR: ['onclick', 'class', 'title'], // 允许 onclick 属性
-      ALLOWED_CLASSES: {
-        '*': ['hljs', 'hljs-*', 'language-*', 'code-block-wrapper', 'code-header', 'copy-button'],
-      },
-    })
+    // 使用 DOMPurify 进行 XSS 防护，并将返回值转换为string类型
+    parsedContent = String(
+      DOMPurify.sanitize(parsedContent, {
+        ADD_TAGS: [
+          'span',
+          'button',
+          'h1',
+          'h2',
+          'h3',
+          'h4',
+          'h5',
+          'h6',
+          'table',
+          'thead',
+          'tbody',
+          'tr',
+          'td',
+          'th',
+          'blockquote',
+          'ul',
+          'ol',
+          'li',
+        ],
+        ADD_ATTR: ['onclick', 'class', 'title'],
+      } as any)
+    )
 
     // 在代码块右上角添加复制按钮，并在左上角显示代码类型
     // 为表格添加水平滚动容器

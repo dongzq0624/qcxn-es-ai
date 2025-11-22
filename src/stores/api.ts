@@ -45,6 +45,9 @@ export const useApiStore = defineStore('api', () => {
   const OPENAI_API_BASE_URL = import.meta.env.VITE_OPENAI_API_BASE_URL
   const OPENAI_API_URL = `${OPENAI_API_BASE_URL}/chat/completions`
 
+  const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
+  const ANTHROPIC_API_URL = import.meta.env.VITE_ANTHROPIC_API_URL
+
   const sendMessage = async (
     messages: Message[],
     model: string,
