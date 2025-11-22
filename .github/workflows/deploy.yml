@@ -9,6 +9,13 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      # 允许写入仓库内容，包括推送gh-pages分支
+      contents: write
+      # 允许操作GitHub Pages
+      pages: write
+      # 允许创建ID令牌用于身份验证
+      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
