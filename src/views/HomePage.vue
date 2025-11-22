@@ -44,7 +44,8 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
+  import { useRoute } from 'vue-router'
   import { Download, Trash2 } from 'lucide-vue-next'
   import { StopCircle } from 'lucide-vue-next'
   import { useChatStore } from '@/stores/chat'
@@ -57,11 +58,24 @@
   const chatStore = useChatStore()
   const settingsStore = useSettingsStore()
   const apiStore = useApiStore()
+  const route = useRoute()
   const typingMessages = ref<Set<string>>(new Set())
 
   const chatContainerRef = ref<HTMLElement>()
 
   const currentConversation = computed(() => chatStore.currentConversation)
+
+  // 监听路由参数变化，设置当前对话ID
+  onMounted(() => {
+    const uuid = route.params.uuid as string
+    if (uuid) {
+      // 检查是否存在该ID的对话
+      const conversationExists = chatStore.conversations.some((c) => c.id === uuid)
+      if (conversationExists) {
+        chatStore.setCurrentConversation(uuid)
+      }
+    }
+  })
 
   const handleStopStreaming = () => {
     apiStore.stopStreaming()

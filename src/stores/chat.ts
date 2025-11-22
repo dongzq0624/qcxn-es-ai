@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import { v4 as uuidv4 } from 'uuid'
 
 export interface Message {
   id: string
@@ -35,7 +36,7 @@ export const useChatStore = defineStore('chat', () => {
     // 默认对话
     return [
       {
-        id: '1',
+        id: uuidv4(),
         title: '新的聊天',
         lastMessage: '开始新的对话',
         timestamp: new Date().toLocaleString('zh-CN'),
@@ -44,10 +45,14 @@ export const useChatStore = defineStore('chat', () => {
     ]
   }
 
-  const conversations = ref<Conversation[]>(loadConversations())
-  const currentConversationId = ref<string>(
-    localStorage.getItem('nextchat-current-conversation') || '1'
-  )
+  // 只调用一次loadConversations()
+  const loadedConversations = loadConversations()
+  const conversations = ref<Conversation[]>(loadedConversations)
+
+  // 初始化当前对话ID，使用localStorage中保存的值或第一个对话的ID
+  const savedId = localStorage.getItem('nextchat-current-conversation')
+  const firstConversationId = loadedConversations[0]?.id || uuidv4()
+  const currentConversationId = ref<string>(savedId || firstConversationId)
 
   // 生成对话标题
   const generateConversationTitle = (conversation: Conversation): string => {
@@ -125,7 +130,7 @@ export const useChatStore = defineStore('chat', () => {
 
   const createNewConversation = () => {
     const newConversation: Conversation = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       title: '新的聊天',
       lastMessage: '',
       timestamp: new Date().toLocaleString('zh-CN'),
@@ -145,7 +150,7 @@ export const useChatStore = defineStore('chat', () => {
     maskPrompt: string
   ) => {
     const newConversation: Conversation = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       title: maskName,
       lastMessage: '',
       timestamp: new Date().toLocaleString('zh-CN'),
@@ -156,7 +161,7 @@ export const useChatStore = defineStore('chat', () => {
 
     // 添加欢迎消息
     const welcomeMessage: Message = {
-      id: (Date.now() + 1).toString(),
+      id: uuidv4(),
       content: `您好！很高兴为您服务。${maskPrompt}`,
       type: 'text',
       timestamp: new Date().toLocaleString(),

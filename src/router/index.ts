@@ -4,8 +4,15 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: () => import('@/views/HomePage.vue'),
+    name: 'Root',
+    redirect: '/chat',
+    children: [
+      {
+        path: 'chat/:uuid?',
+        name: 'Chat',
+        component: () => import('@/views/HomePage.vue'),
+      },
+    ],
   },
   {
     path: '/settings',
@@ -33,7 +40,7 @@ const routes = [
 
 // 创建路由实例
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/qcxn-es-ai/'),
   routes,
 })
 
