@@ -1,6 +1,14 @@
 module.exports = {
+  overrides: [
+    {
+      files: ['**/*.js'],
+      rules: {
+        '@typescript-eslint/no-var-requires': 'off',
+      },
+    },
+  ],
   root: true,
-  env: { browser: true, es2021: true, node: true },
+  env: { browser: true, es2021: true, node: true, jest: true },
   parser: 'vue-eslint-parser',
   parserOptions: {
     parser: '@typescript-eslint/parser',

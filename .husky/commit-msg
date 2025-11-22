@@ -1,2 +1,2 @@
 #!/bin/sh
-pnpm commitlint --edit "$1"
+npm run commitlint -- --edit "$1"

@@ -16,7 +16,10 @@
     "commitlint": "commitlint --from=HEAD~1 --to=HEAD",
     "precommit": "lint-staged",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "pre-deploy": "bash scripts/pre-deploy-check.sh",
+    "test:e2e": "jest tests/e2e/app.test.js",
+    "test:deploy": "npm run build && npm run preview -- --port 8080 & sleep 5 && npm run test:e2e; kill $!"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
