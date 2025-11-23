@@ -270,7 +270,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
+  import { ref, computed, nextTick, onMounted, onBeforeUnmount, onUnmounted, watch } from 'vue'
   import {
     Edit3,
     Link,
@@ -556,7 +556,9 @@
           if (messageIndex !== -1) {
             currentConversation.messages[messageIndex].content = fullContent
             // 每次内容更新时滚动到底部，确保流式消息实时可见
-            scrollToBottom()
+            if (isAutoScroll.value) {
+              debouncedScrollToBottom()
+            }
           }
         }
       )
@@ -750,7 +752,9 @@
           if (msgIndex !== -1) {
             conversation.messages[msgIndex].content = fullContent
             // 每次内容更新时滚动到底部，确保流式消息实时可见
-            scrollToBottom()
+            if (isAutoScroll.value) {
+              debouncedScrollToBottom()
+            }
           }
         }
       )
@@ -775,6 +779,15 @@
     }
   }
 
+  // 防抖函数
+  const debounce = <T extends (...args: any[]) => any>(func: T, wait: number) => {
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    return (...args: Parameters<T>) => {
+      if (timeout) clearTimeout(timeout)
+      timeout = setTimeout(() => func(...args), wait)
+    }
+  }
+
   const scrollToBottom = () => {
     nextTick(() => {
       if (messagesContainer.value) {
@@ -791,11 +804,19 @@
     })
   }
 
+  // 创建防抖版本的滚动函数
+  const debouncedScrollToBottom = debounce(scrollToBottom, 50)
+
+  // 添加自动滚动状态
+  const isAutoScroll = ref(true)
+
   // 监听当前会话ID变化，确保切换聊天时自动滚动到底部
   watch(
     () => chatStore.currentConversationId,
     () => {
-      scrollToBottom()
+      if (isAutoScroll.value) {
+        scrollToBottom()
+      }
     }
   )
 
@@ -803,7 +824,9 @@
   watch(
     () => currentConversation.value?.messages.length,
     () => {
-      scrollToBottom()
+      if (isAutoScroll.value) {
+        debouncedScrollToBottom()
+      }
     }
   )
 
@@ -812,9 +835,23 @@
     () => currentConversation.value?.messages.map((m) => m.content),
     () => {
       nextTick(() => {
+        // 保存当前滚动高度
+        const container = messagesContainer.value
+        if (!container) return
+
+        const previousHeight = container.scrollHeight
+
         // 强制重新渲染代码高亮
         document.querySelectorAll('pre code').forEach((block) => {
           hljs.highlightElement(block as HTMLElement)
+        })
+
+        // 等待代码高亮完成后再处理滚动
+        nextTick(() => {
+          // 如果代码高亮导致高度变化，且处于自动滚动状态
+          if (isAutoScroll.value && container.scrollHeight !== previousHeight) {
+            debouncedScrollToBottom()
+          }
         })
       })
     },
@@ -825,11 +862,32 @@
     // 组件挂载时的其他初始化逻辑
     scrollToBottom()
 
+    // 监听滚动事件，更新自动滚动状态
+    const container = messagesContainer.value
+    if (container) {
+      const handleScroll = () => {
+        // 如果用户手动滚动离开底部，禁用自动滚动
+        const isAtBottom =
+          container.scrollHeight - container.scrollTop - container.clientHeight < 100
+        isAutoScroll.value = isAtBottom
+      }
+      container.addEventListener('scroll', handleScroll)
+
+      // 清理函数
+      onBeforeUnmount(() => {
+        container.removeEventListener('scroll', handleScroll)
+      })
+    }
+
     // 初始化时对已有代码块进行高亮处理
     nextTick(() => {
       document.querySelectorAll('pre code').forEach((block) => {
         hljs.highlightElement(block as HTMLElement)
       })
+      // 高亮后如果处于自动滚动状态，滚动到底部
+      if (isAutoScroll.value) {
+        debouncedScrollToBottom()
+      }
     })
   })
 
