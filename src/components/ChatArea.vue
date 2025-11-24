@@ -349,6 +349,11 @@
   const messagesContainer = ref<HTMLElement | null>(null)
   const textareaRef = ref<HTMLTextAreaElement | null>(null)
 
+  // 自动重试相关状态
+  const hasFailedMessages = ref(false)
+  const autoRetryAttempts = ref(0)
+  const MAX_AUTO_RETRY_ATTEMPTS = 3
+
   const currentConversation = computed(() => chatStore.currentConversation)
 
   // 统一的消息格式化函数
@@ -502,6 +507,12 @@
 
   const sendMessage = async () => {
     if (!inputMessage.value.trim()) return
+
+    // 检查网络状态
+    if (!apiStore.isOnline) {
+      ElMessage.error('网络连接已断开，请检查网络后重试')
+      return
+    }
 
     const message: Message = {
       id: Date.now().toString(),
@@ -769,13 +780,25 @@
       }
 
       localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
-      ElMessage.success('重试成功')
+      // 重置失败状态和自动重试计数
+      hasFailedMessages.value = false
+      autoRetryAttempts.value = 0
+
+      ElMessage.success('消息已成功发送')
 
       // 滚动到底部
       scrollToBottom()
     } catch (error) {
       console.error('重试失败:', error)
-      ElMessage.error('重试失败，请稍后重试')
+
+      // 根据网络状态显示不同的错误信息
+      if (!apiStore.isOnline) {
+        ElMessage.error('网络连接已断开，请检查网络后重试')
+      } else {
+        ElMessage.error('消息发送失败，请稍后重试')
+      }
+
+      hasFailedMessages.value = true
     }
   }
 
@@ -785,6 +808,48 @@
     return (...args: Parameters<T>) => {
       if (timeout) clearTimeout(timeout)
       timeout = setTimeout(() => func(...args), wait)
+    }
+  }
+
+  // 检查当前会话中是否有失败的消息
+  const checkForFailedMessages = () => {
+    const conversation = currentConversation.value
+    if (!conversation) return false
+
+    // 简单判断：检查最后一条AI消息是否为空或有明显错误标记
+    const lastMessage = conversation.messages[conversation.messages.length - 1]
+    return (
+      lastMessage &&
+      lastMessage.sender === 'assistant' &&
+      (lastMessage.content === '' ||
+        lastMessage.content.includes('请求失败') ||
+        lastMessage.content.includes('网络错误'))
+    )
+  }
+
+  // 监听网络状态变化
+  const handleNetworkStatusChange = () => {
+    if (apiStore.isOnline) {
+      // 网络恢复时检查是否有需要重试的消息
+      if (checkForFailedMessages() && autoRetryAttempts.value < MAX_AUTO_RETRY_ATTEMPTS) {
+        ElMessage.info('网络已恢复，正在尝试重新发送消息...')
+        autoRetryAttempts.value++
+
+        // 延迟执行自动重试，给网络一点稳定时间
+        setTimeout(() => {
+          const conversation = currentConversation.value
+          if (conversation && conversation.messages.length > 0) {
+            const lastMessage = conversation.messages[conversation.messages.length - 1]
+            if (lastMessage && lastMessage.sender === 'assistant') {
+              retryMessage(lastMessage)
+            }
+          }
+        }, 1000)
+      }
+    } else {
+      // 网络断开时重置自动重试计数
+      autoRetryAttempts.value = 0
+      hasFailedMessages.value = checkForFailedMessages()
     }
   }
 
@@ -879,6 +944,10 @@
       })
     }
 
+    // 监听网络状态变化
+    window.addEventListener('online', handleNetworkStatusChange)
+    window.addEventListener('offline', handleNetworkStatusChange)
+
     // 初始化时对已有代码块进行高亮处理
     nextTick(() => {
       document.querySelectorAll('pre code').forEach((block) => {
@@ -900,6 +969,8 @@
 
   onUnmounted(() => {
     // 清理全局函数
+    window.removeEventListener('online', handleNetworkStatusChange)
+    window.removeEventListener('offline', handleNetworkStatusChange)
   })
 </script>
 

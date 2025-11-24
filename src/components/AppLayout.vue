@@ -1,64 +1,80 @@
 <template>
-  <div
-    class="flex min-h-screen items-center justify-center bg-gray-100 p-4 dark:bg-gray-900 lg:p-4"
-  >
-    <!-- 卡片容器 -->
+  <div class="relative min-h-screen">
+    <!-- 网络连接状态指示器 -->
     <div
+      v-if="showNetworkNotification"
       :class="[
-        'flex w-full max-w-6xl overflow-hidden bg-white shadow-2xl dark:bg-gray-800',
-        'lg:h-[90vh] lg:rounded-2xl',
-        'h-screen max-h-screen rounded-none lg:max-h-none',
+        'fixed right-4 top-4 z-50 flex items-center rounded-lg px-4 py-2 font-medium',
+        apiStore.isOnline
+          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
       ]"
     >
-      <!-- 移动端遮罩层 -->
-      <div
-        v-if="isMobile && sidebarOpen"
-        @click="toggleSidebar"
-        class="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-      ></div>
+      <component :is="apiStore.isOnline ? Wifi : WifiOff" class="mr-2 h-5 w-5" />
+      <span>{{ networkStatusText }}</span>
+    </div>
 
-      <!-- 侧边栏 -->
+    <div
+      class="flex min-h-screen items-center justify-center bg-gray-100 p-4 dark:bg-gray-900 lg:p-4"
+    >
+      <!-- 卡片容器 -->
       <div
         :class="[
-          'fixed z-50 transition-all duration-300 ease-in-out lg:relative',
-          isMobile && !sidebarOpen ? '-translate-x-full' : 'translate-x-0',
-          isMobile
-            ? 'left-0 top-0 h-screen w-full'
-            : sidebarCollapsed
-              ? 'h-full w-16'
-              : 'h-full w-80',
+          'flex w-full max-w-6xl overflow-hidden bg-white shadow-2xl dark:bg-gray-800',
+          'lg:h-[90vh] lg:rounded-2xl',
+          'h-screen max-h-screen rounded-none lg:max-h-none',
         ]"
       >
-        <Sidebar
-          @open-settings="goToSettings"
-          @toggle-collapse="toggleSidebarCollapse"
-          @conversation-selected="handleConversationSelected"
-          :collapsed="isMobile ? false : sidebarCollapsed"
-          :is-mobile="isMobile"
-        />
-      </div>
-
-      <!-- 主内容区域 -->
-      <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <!-- 移动端顶部栏 -->
+        <!-- 移动端遮罩层 -->
         <div
-          v-if="isMobile && $route.name !== 'settings'"
-          class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-600 dark:bg-gray-800 lg:hidden"
+          v-if="isMobile && sidebarOpen"
+          @click="toggleSidebar"
+          class="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+        ></div>
+
+        <!-- 侧边栏 -->
+        <div
+          :class="[
+            'fixed z-50 transition-all duration-300 ease-in-out lg:relative',
+            isMobile && !sidebarOpen ? '-translate-x-full' : 'translate-x-0',
+            isMobile
+              ? 'left-0 top-0 h-screen w-full'
+              : sidebarCollapsed
+                ? 'h-full w-16'
+                : 'h-full w-80',
+          ]"
         >
-          <div class="flex items-center">
-            <button
-              @click="toggleSidebar"
-              class="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <Menu class="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            </button>
-            <h1 class="ml-4 text-lg font-semibold text-gray-800 dark:text-gray-200">储能AI</h1>
-          </div>
-          <!-- 移动端不需要侧边栏收缩按钮 -->
+          <Sidebar
+            @open-settings="goToSettings"
+            @toggle-collapse="toggleSidebarCollapse"
+            @conversation-selected="handleConversationSelected"
+            :collapsed="isMobile ? false : sidebarCollapsed"
+            :is-mobile="isMobile"
+          />
         </div>
 
-        <!-- 路由视图 -->
-        <router-view class="flex-1 overflow-hidden" />
+        <!-- 主内容区域 -->
+        <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <!-- 移动端顶部栏 -->
+          <div
+            v-if="isMobile && $route.name !== 'settings'"
+            class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-600 dark:bg-gray-800 lg:hidden"
+          >
+            <div class="flex items-center">
+              <button
+                @click="toggleSidebar"
+                class="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <Menu class="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              </button>
+              <h1 class="ml-4 text-lg font-semibold text-gray-800 dark:text-gray-200">储能AI</h1>
+            </div>
+            <!-- 移动端不需要侧边栏收缩按钮 -->
+          </div>
+
+          <!-- 路由视图 -->
+          <router-view class="flex-1 overflow-hidden" />
+        </div>
       </div>
     </div>
   </div>
@@ -175,18 +191,48 @@
 </style>
 
 <script setup lang="ts">
-  import { ref, onMounted, onUnmounted } from 'vue'
+  import { ref, onMounted, onUnmounted, computed } from 'vue'
   import { useRouter } from 'vue-router'
-  import { Menu, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+  import { Menu, ChevronLeft, ChevronRight, Wifi, WifiOff } from 'lucide-vue-next'
   import Sidebar from '@/components/Sidebar.vue'
   import { useThemeStore } from '@/stores/theme'
+  import { useApiStore } from '@/stores/api'
 
   const router = useRouter()
   const isMobile = ref(false)
   const sidebarOpen = ref(false)
   const sidebarCollapsed = ref(false)
   const themeStore = useThemeStore()
+  const apiStore = useApiStore()
   let timeCheckInterval: number | null = null
+
+  // 网络状态显示相关
+  const showNetworkNotification = ref(false)
+  const networkNotificationTimeout = ref<number | null>(null)
+
+  // 计算网络状态文本
+  const networkStatusText = computed(() => {
+    return apiStore.isOnline ? '网络已连接' : '网络连接已断开'
+  })
+
+  // 显示网络状态通知
+  const showNetworkStatusNotification = () => {
+    showNetworkNotification.value = true
+    // 3秒后自动隐藏通知（除了断开状态）
+    if (apiStore.isOnline && networkNotificationTimeout.value) {
+      clearTimeout(networkNotificationTimeout.value)
+    }
+    if (apiStore.isOnline) {
+      networkNotificationTimeout.value = window.setTimeout(() => {
+        showNetworkNotification.value = false
+      }, 3000)
+    }
+  }
+
+  // 监听网络状态变化
+  const handleNetworkStatusChange = () => {
+    showNetworkStatusNotification()
+  }
 
   // 检查是否需要更新主题
   const checkAndApplyTheme = () => {
@@ -227,14 +273,23 @@
     checkMobile()
     window.addEventListener('resize', checkMobile)
 
+    // 监听apiStore中的网络状态变化
+    window.addEventListener('online', handleNetworkStatusChange)
+    window.addEventListener('offline', handleNetworkStatusChange)
+
     // 每分钟检查一次时间，看是否需要切换主题
     timeCheckInterval = window.setInterval(checkAndApplyTheme, 60000)
   })
 
   onUnmounted(() => {
     window.removeEventListener('resize', checkMobile)
+    window.removeEventListener('online', handleNetworkStatusChange)
+    window.removeEventListener('offline', handleNetworkStatusChange)
     if (timeCheckInterval) {
       clearInterval(timeCheckInterval)
+    }
+    if (networkNotificationTimeout.value) {
+      clearTimeout(networkNotificationTimeout.value)
     }
   })
 </script>
