@@ -34,6 +34,18 @@ const routes: RouteRecordRaw[] = [
       template: '<div class="text-center text-xl p-8">About Page - Coming Soon</div>',
     },
   },
+  {
+    // 404页面配置
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFoundPage.vue'),
+  },
+  {
+    // 500页面配置
+    path: '/500',
+    name: 'ServerError',
+    component: () => import('@/views/ServerErrorPage.vue'),
+  },
 ]
 
 // 创建路由实例

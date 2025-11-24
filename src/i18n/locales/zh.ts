@@ -119,4 +119,12 @@ export default {
     enter: 'Enter',
     ctrlEnter: 'Ctrl + Enter',
   },
+  error: {
+    pageNotFound: '页面未找到',
+    pageNotFoundDescription: '抱歉，您访问的页面不存在或已被移除。',
+    serverError: '服务器错误',
+    serverErrorDescription: '抱歉，服务器内部发生错误，请稍后重试或返回首页。',
+    goHome: '返回首页',
+    retry: '重试',
+  },
 }

@@ -62,5 +62,32 @@ if (path) {
   router.replace('/' + decodedPath)
 }
 
+// 全局错误处理
+// 1. Vue错误处理
+app.config.errorHandler = (err, instance, info) => {
+  console.error('Vue应用错误:', err, info)
+  // 重定向到500页面
+  router.push('/500')
+}
+
+// 2. 全局JavaScript错误处理
+window.onerror = (message, source, lineno, colno, error) => {
+  console.error('全局JavaScript错误:', message, source, lineno, colno, error)
+  // 避免循环重定向到500页面
+  if (!window.location.pathname.includes('/500')) {
+    router.push('/500')
+  }
+  return true // 阻止默认处理
+}
+
+// 3. 未处理的Promise拒绝
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('未处理的Promise拒绝:', event.reason)
+  // 避免循环重定向到500页面
+  if (!window.location.pathname.includes('/500')) {
+    router.push('/500')
+  }
+})
+
 // 挂载应用
 app.mount('#app')
