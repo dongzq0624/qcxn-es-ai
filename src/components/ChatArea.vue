@@ -56,101 +56,6 @@
                   ]"
                 >
                   <button
-                    v-if="message.sender === 'assistant'"
-                    @click="retryMessage(message)"
-                    class="rounded-md p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
-                    title="重试"
-                  >
-                    <RotateCcw class="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    @click="copyMessage(message)"
-                    :class="[
-                      'rounded-md p-1.5',
-                      message.sender === 'user'
-                        ? 'bg-white/20 hover:bg-white/30'
-                        : 'hover:bg-black/10 dark:hover:bg-white/10',
-                    ]"
-                    title="复制"
-                  >
-                    <Copy class="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    @click="deleteMessage(message.id)"
-                    :class="[
-                      'rounded-md p-1.5',
-                      message.sender === 'user'
-                        ? 'bg-white/20 hover:bg-white/30'
-                        : 'hover:bg-black/10 dark:hover:bg-white/10',
-                    ]"
-                    title="删除"
-                  >
-                    <Trash2 class="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </template>
-
-              <!-- 代码块消息 -->
-              <template v-else-if="message.type === 'code'">
-                <!-- 代码块容器 -->
-                <div
-                  class="code-block-container overflow-hidden bg-gray-50 dark:bg-gray-800"
-                  :style="{
-                    fontSize: settingsStore.settings.fontSize + 'px',
-                    fontFamily: settingsStore.settings.chatFont,
-                    borderRadius: '8px',
-                  }"
-                >
-                  <!-- 代码块头部信息栏 -->
-                  <div
-                    class="dark:bg-gray-850 flex items-center justify-between border-b border-gray-200 bg-gray-100 px-4 py-2 dark:border-gray-700"
-                  >
-                    <!-- 语言标签 -->
-                    <div class="font-mono text-sm text-gray-600 dark:text-gray-300">
-                      <span class="text-xs opacity-70">javascript</span>
-                    </div>
-
-                    <!-- 代码操作按钮 -->
-                    <div class="flex items-center gap-3">
-                      <button
-                        class="flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                        title="复制代码"
-                        @click="copyCodeBlock(message)"
-                      >
-                        <Copy class="h-4 w-4" />
-                        <span>复制</span>
-                      </button>
-                      <button
-                        class="flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                        title="下载代码"
-                        @click="downloadCodeBlock(message)"
-                      >
-                        <FileText class="h-4 w-4" />
-                        <span>下载</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- 代码内容 -->
-                  <div class="max-w-none overflow-x-auto whitespace-pre p-4 text-sm">
-                    <div
-                      class="whitespace-pre break-words"
-                      v-html="formatMessage(message.content)"
-                    ></div>
-                  </div>
-                </div>
-
-                <!-- 消息操作按钮 - 根据发送者位置调整 -->
-                <div
-                  :class="[
-                    'mt-1 flex items-center gap-1 text-xs transition-opacity duration-200',
-                    message.sender === 'user'
-                      ? 'justify-end text-gray-700 dark:text-gray-300'
-                      : 'justify-start text-gray-500 dark:text-gray-400',
-                  ]"
-                >
-                  <button
-                    v-if="message.sender === 'assistant'"
                     @click="retryMessage(message)"
                     class="rounded-md p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
                     title="重试"
@@ -452,6 +357,9 @@
           setTimeout(() => {
             button.innerHTML = originalHTML
           }, 2000)
+
+          // 添加全局复制成功提示
+          ElMessage.success('代码已复制到剪贴板')
         })
       }
     }
@@ -694,7 +602,22 @@
               conversation.lastMessage = ''
             }
 
-            localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
+            // 使用正确的分层存储方法保存数据
+            // 保存消息数据
+            const messagesKey = `nextchat-conversation-${conversation.id}-messages`
+            localStorage.setItem(messagesKey, JSON.stringify(conversation.messages))
+
+            // 保存对话元数据
+            const metadataKey = 'nextchat-conversations-metadata'
+            const metadataList = chatStore.conversations.map((conv) => ({
+              id: conv.id,
+              title: conv.title,
+              lastMessage: conv.lastMessage,
+              timestamp: conv.timestamp,
+              messageCount: conv.messages.length,
+            }))
+            localStorage.setItem(metadataKey, JSON.stringify(metadataList))
+
             ElMessage.success('消息已删除')
           }
         }

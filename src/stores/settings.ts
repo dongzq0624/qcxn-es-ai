@@ -4,7 +4,6 @@ import { defineStore } from 'pinia'
 export type SendMode = 'enter' | 'ctrlEnter'
 export type Theme = 'light' | 'dark' | 'auto'
 export type Language = 'zh' | 'en' | 'ko'
-// 已移除 TTS 功能
 
 export interface SettingsState {
   // 基础设置
@@ -62,13 +61,6 @@ export const useSettingsStore = defineStore('settings', () => {
     maxTokens: 4000,
     presencePenalty: 0.0,
     frequencyPenalty: 0.0,
-    injectSystemPrompts: true,
-    inputTemplate: '{{input}}',
-    historyMessageCount: 4,
-    compressThreshold: 1000,
-    historySummary: false,
-    summaryModel: 'model1',
-    realtimeChat: false,
   })
 
   // 加载保存的设置
