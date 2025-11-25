@@ -28,13 +28,6 @@ export interface SettingsState {
   maxTokens: number
   presencePenalty: number
   frequencyPenalty: number
-  injectSystemPrompts: boolean
-  inputTemplate: string
-  historyMessageCount: number
-  compressThreshold: number
-  historySummary: boolean
-  summaryModel: string
-  realtimeChat: boolean
 }
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -101,13 +94,6 @@ export const useSettingsStore = defineStore('settings', () => {
       maxTokens: 4000,
       presencePenalty: 0.0,
       frequencyPenalty: 0.0,
-      injectSystemPrompts: true,
-      inputTemplate: '{{input}}',
-      historyMessageCount: 4,
-      compressThreshold: 1000,
-      historySummary: false,
-      summaryModel: 'model1',
-      realtimeChat: false,
     }
     Object.assign(settings.value, defaultSettings)
     saveSettings()
