@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import Inspector from 'unplugin-vue-dev-locator/vite'
 import traeBadgePlugin from 'vite-plugin-trae-solo-badge'
+import { buildCompleteNotification } from './src/plugins/buildCompleteNotification'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -10,6 +11,22 @@ export default defineConfig({
   base: '/qcxn-es-ai/',
   build: {
     sourcemap: 'hidden',
+    outDir: 'qcxn-es-ai', // 设置打包输出目录为qcxn-es-ai
+    // 配置分包处理
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // 将Vue相关库打包成一个chunk
+          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+          // 将UI组件和第三方库分离
+          'ui-components': ['lucide-vue-next'],
+          // 将Markdown解析和XSS防护库打包
+          'markdown-xss': ['marked', 'dompurify'],
+          // 将国际化相关库打包
+          i18n: ['vue-i18n'],
+        },
+      },
+    },
   },
   server: {
     port: 8080, // 设置默认端口为8080
@@ -33,6 +50,7 @@ export default defineConfig({
       autoTheme: true,
       autoThemeTarget: '#app',
     }),
+    buildCompleteNotification(), // 使用自定义构建完成提示插件
   ],
   resolve: {
     alias: {

@@ -413,15 +413,33 @@
     chatStore.createNewConversation()
   }
 
+  /**
+   * 发送用户消息并处理AI的流式响应
+   * 功能说明：
+   * 1. 验证输入内容和网络状态
+   * 2. 创建用户消息并添加到当前会话
+   * 3. 创建AI响应占位消息
+   * 4. 调用API发送流式请求获取AI响应
+   * 5. 实时更新AI响应内容并处理滚动
+   * 6. 保存会话到本地存储
+   * 7. 处理可能出现的错误
+   *
+   * 参数：无
+   * 返回值：Promise<void> - 异步函数，无直接返回值
+   */
   const sendMessage = async () => {
+    // 输入验证：检查消息是否为空或仅包含空白字符
     if (!inputMessage.value.trim()) return
 
-    // 检查网络状态
+    // 检查网络状态：确保在发送请求前网络连接正常
     if (!apiStore.isOnline) {
       ElMessage.error('网络连接已断开，请检查网络后重试')
       return
     }
 
+    // 创建用户消息对象
+    // 使用当前时间戳作为消息ID，确保唯一性
+    // 根据用户设置的语言格式化时间戳
     const message: Message = {
       id: Date.now().toString(),
       content: inputMessage.value,
@@ -430,20 +448,27 @@
         settingsStore.settings.language === 'zh' ? 'zh-CN' : 'en-US'
       ),
       sender: 'user',
-      model: settingsStore.settings.model,
+      model: settingsStore.settings.model, // 记录使用的AI模型
     }
 
+    // 将用户消息添加到当前会话
     chatStore.addMessage(chatStore.currentConversationId, message)
+    // 清空输入框，准备接收新消息
     inputMessage.value = ''
 
     try {
+      // 获取当前会话对象，确保会话存在
       const currentConversation = chatStore.currentConversation
       if (!currentConversation) return
 
+      // 创建AI响应消息的唯一ID（确保与用户消息ID不同）
       const aiMessageId = (Date.now() + 1).toString()
+
+      // 创建AI响应占位消息
+      // 初始内容为空，将在流式响应中逐步更新
       const aiMessage: Message = {
         id: aiMessageId,
-        content: '',
+        content: '', // 初始为空，后续通过流式响应更新
         type: 'text',
         timestamp: new Date().toLocaleString(
           settingsStore.settings.language === 'zh' ? 'zh-CN' : 'en-US'
@@ -452,11 +477,22 @@
         model: settingsStore.settings.model,
       }
 
+      // 将AI响应占位消息添加到当前会话
       chatStore.addMessage(chatStore.currentConversationId, aiMessage)
+      // 添加到typingMessages集合，用于显示输入指示器
       typingMessages.value.add(aiMessageId)
 
+      // 核心防位置错乱机制1: 使用独立变量累积完整内容
+      // 每次收到新的chunk时，不是追加到现有内容，而是重新设置完整内容
+      // 确保即使收到乱序的chunk也能正确显示完整响应
       let fullContent = ''
 
+      // 调用API发送流式请求
+      // 参数包括：
+      // 1. 当前会话的所有消息上下文
+      // 2. 使用的AI模型
+      // 3. 模型参数配置
+      // 4. 流式响应回调函数
       await apiStore.sendStreamingMessage(
         currentConversation.messages,
         settingsStore.settings.model,
@@ -466,15 +502,30 @@
           frequencyPenalty: settingsStore.settings.frequencyPenalty || 0,
           topP: settingsStore.settings.topP,
         },
+        // 流式响应回调函数 - 每收到新的内容片段都会调用
         (chunk: string) => {
+          // 核心防位置错乱机制2: 累积完整响应内容
+          // 每次收到新片段时，将其添加到完整内容变量中
+          // 这种方式确保即使有延迟或乱序的chunk也能构建完整的响应
           fullContent += chunk
 
+          // 核心防位置错乱机制3: 使用精确的消息ID进行定位
+          // 通过findIndex方法根据唯一的aiMessageId查找目标消息
+          // 而不是假设消息在特定位置，这是防止位置错乱的关键
           const messageIndex = currentConversation.messages.findIndex(
             (msg) => msg.id === aiMessageId
           )
+
+          // 安全检查：确保找到了消息才进行更新
           if (messageIndex !== -1) {
+            // 核心防位置错乱机制4: 替换而非追加内容
+            // 每次都用完整累积的内容替换消息内容
+            // 而不是追加到现有内容，避免多线程或异步操作导致的内容重叠
             currentConversation.messages[messageIndex].content = fullContent
-            // 每次内容更新时滚动到底部，确保流式消息实时可见
+
+            // 核心防位置错乱机制5: 防抖滚动优化
+            // 仅在自动滚动模式下执行，且使用防抖函数避免频繁滚动操作
+            // 保证用户体验的同时减少性能消耗
             if (isAutoScroll.value) {
               debouncedScrollToBottom()
             }
@@ -482,26 +533,32 @@
         }
       )
 
+      // 流式响应完成后，从typingMessages中移除，隐藏输入指示器
       typingMessages.value.delete(aiMessageId)
 
       // 保存到localStorage，确保刷新页面后消息不丢失
       localStorage.setItem('nextchat-conversations', JSON.stringify(chatStore.conversations))
 
-      // 滚动到底部
+      // 响应完成后最终滚动到底部，确保用户能看到完整回复
       scrollToBottom()
     } catch (error) {
+      // 记录错误到控制台，便于调试
       console.error('发送消息失败:', error)
+      // 显示错误提示给用户
       ElMessage.error('发送消息失败，请稍后重试')
 
+      // 创建错误消息对象
+      // 包含具体错误信息，帮助用户了解失败原因
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: `错误: ${error instanceof Error ? error.message : '未知错误'}`,
+        id: (Date.now() + 1).toString(), // 确保错误消息ID唯一
+        content: `错误: ${error instanceof Error ? error.message : '未知错误'}`, // 格式化错误信息
         type: 'text',
         timestamp: new Date().toLocaleString(
           settingsStore.settings.language === 'zh' ? 'zh-CN' : 'en-US'
         ),
-        sender: 'assistant',
+        sender: 'assistant', // 错误消息也作为AI响应显示
       }
+      // 将错误消息添加到会话中
       chatStore.addMessage(chatStore.currentConversationId, errorMessage)
     }
   }
